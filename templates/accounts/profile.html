@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-person-circle"></i> User Profile
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'accounts:change_password' %}" class="btn btn-warning">
+        <i class="bi bi-key"></i> Change Password
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Profile Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-person-circle display-1 text-muted"></i>
+                        </div>
+                        <h5>{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted">
+                            {% if user.is_superuser %}
+                                <span class="badge bg-danger">Super Admin</span>
+                            {% elif user.is_staff %}
+                                <span class="badge bg-warning">Staff</span>
+                            {% else %}
+                                <span class="badge bg-info">User</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>First Name:</strong></td>
+                                <td>{{ user.first_name|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Name:</strong></td>
+                                <td>{{ user.last_name|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ user.email|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date Joined:</strong></td>
+                                <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Login:</strong></td>
+                                <td>{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Summary -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-graph-up"></i> Activity Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i class="bi bi-receipt fs-2 text-primary"></i>
+                            <h4>{{ user.sale_set.count }}</h4>
+                            <small class="text-muted">Sales Created</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i class="bi bi-arrow-up-right fs-2 text-success"></i>
+                            <h4>{{ user.stockmovement_set.count }}</h4>
+                            <small class="text-muted">Stock Movements</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i class="bi bi-credit-card fs-2 text-info"></i>
+                            <h4>{{ user.payment_set.count }}</h4>
+                            <small class="text-muted">Payments Recorded</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <i class="bi bi-calendar-day fs-2 text-warning"></i>
+                            <h4>{{ user.date_joined|timesince|truncatewords:1 }}</h4>
+                            <small class="text-muted">Member Since</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-shield-check"></i> Permissions & Access</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>System Access</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                Dashboard
+                                <span class="badge bg-success">✓</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                Inventory Management
+                                <span class="badge bg-success">✓</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                Sales Processing
+                                <span class="badge bg-success">✓</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                Reports
+                                <span class="badge bg-success">✓</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Administrative</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                User Management
+                                {% if user.is_staff %}
+                                    <span class="badge bg-success">✓</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✗</span>
+                                {% endif %}
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                System Settings
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-success">✓</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✗</span>
+                                {% endif %}
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                Data Export
+                                {% if user.is_staff %}
+                                    <span class="badge bg-success">✓</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✗</span>
+                                {% endif %}
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                Database Access
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-success">✓</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✗</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:change_password' %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-key"></i> Change Password
+                    </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-info btn-sm">
+                        <i class="bi bi-people"></i> Manage Users
+                    </a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                    <a href="/admin/" class="btn btn-success btn-sm">
+                        <i class="bi bi-gear"></i> Admin Panel
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for sale in user.sale_set.all|slice:":5" %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary rounded-circle p-2 text-white">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Sale Created</h6>
+                            <p class="mb-1">Created sale {{ sale.invoice_number }} for {{ sale.customer.name }}</p>
+                            <small class="text-muted">{{ sale.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history fs-1"></i><br>
+                        No recent activity
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline .bg-primary {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Suppliers - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-truck"></i> Suppliers
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:supplier_add' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> Add Supplier
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Contact Person</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Products</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>{{ supplier.name }}</strong><br>
+                                <small class="text-muted">{{ supplier.address|truncatechars:50 }}</small>
+                            </div>
+                        </td>
+                        <td>{{ supplier.contact_person }}</td>
+                        <td>{{ supplier.phone }}</td>
+                        <td>{{ supplier.email|default:"Not provided" }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ supplier.products.count }} products</span>
+                        </td>
+                        <td>
+                            {% if supplier.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'inventory:supplier_detail' supplier.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:supplier_edit' supplier.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'inventory:supplier_delete' supplier.pk %}" class="btn btn-outline-danger" title="Delete" onclick="return confirmDelete(event, 'supplier', '{{ supplier.name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-truck fs-1"></i><br>
+                            No suppliers found.<br>
+                            <a href="{% url 'inventory:supplier_add' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Add Your First Supplier
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ suppliers|length }}</h5>
+                <p class="card-text text-muted">Total Suppliers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    {% for supplier in suppliers %}
+                        {% if supplier.is_active %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </h5>
+                <p class="card-text text-muted">Active Suppliers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {% for supplier in suppliers %}
+                        {% if forloop.first %}{{ supplier.products.count }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </h5>
+                <p class="card-text text-muted">Products from Top Supplier</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(event, itemType, itemName) {
+    event.preventDefault();
+    const url = event.currentTarget.href;
+    
+    Swal.fire({
+        title: `Delete ${itemType}?`,
+        text: `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, delete ${itemType}!`,
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal2-popup',
+            title: 'swal2-title',
+            htmlContainer: 'swal2-html-container'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+    
+    return false;
+}
+</script>
+{% endblock %}

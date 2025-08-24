@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Customers - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-people"></i> Customers
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:customer_add' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> Add Customer
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Contact</th>
+                        <th>Credit Limit</th>
+                        <th>Outstanding</th>
+                        <th>Total Purchases</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>{{ customer.name }}</strong>
+                                {% if customer.tin_number %}
+                                    <br><small class="text-muted">TIN: {{ customer.tin_number }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if customer.customer_type == 'RETAIL' %}bg-info
+                                {% elif customer.customer_type == 'WHOLESALE' %}bg-success
+                                {% else %}bg-primary{% endif %}">
+                                {{ customer.get_customer_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div>
+                                <i class="bi bi-telephone"></i> {{ customer.phone }}<br>
+                                {% if customer.email %}
+                                    <i class="bi bi-envelope"></i> {{ customer.email }}
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>GHS {{ customer.credit_limit }}</td>
+                        <td>
+                            <strong class="{% if customer.outstanding_balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                                GHS {{ customer.outstanding_balance|floatformat:2 }}
+                            </strong>
+                        </td>
+                        <td>
+                            <strong class="text-success">GHS {{ customer.total_purchases|floatformat:2 }}</strong>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'sales:customer_detail' customer.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'sales:customer_edit' customer.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-people fs-1"></i><br>
+                            No customers found.<br>
+                            <a href="{% url 'sales:customer_add' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Add Your First Customer
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ customers|length }}</h5>
+                <p class="card-text text-muted">Total Customers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">
+                    {% for customer in customers %}{% if customer.customer_type == 'RETAIL' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </h5>
+                <p class="card-text text-muted">Retail Customers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    {% for customer in customers %}{% if customer.customer_type == 'WHOLESALE' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </h5>
+                <p class="card-text text-muted">Wholesale Customers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    {% for customer in customers %}{% if customer.customer_type == 'DISTRIBUTOR' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </h5>
+                <p class="card-text text-muted">Distributors</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Supplier - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-trash"></i> Delete Supplier
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <strong>Warning!</strong> This action cannot be undone. This will also affect all products associated with this supplier.
+        </div>
+        
+        <p>Are you sure you want to delete the following supplier?</p>
+        
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">{{ object.name }}</h6>
+                <p class="card-text">
+                    <strong>Contact Person:</strong> {{ object.contact_person }}<br>
+                    <strong>Phone:</strong> {{ object.phone }}<br>
+                    <strong>Email:</strong> {{ object.email|default:"Not provided" }}<br>
+                    <strong>Address:</strong> {{ object.address }}
+                </p>
+                <p class="text-warning">
+                    <i class="bi bi-box"></i> This supplier has {{ object.products.count }} product(s) associated.
+                </p>
+            </div>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Yes, Delete Supplier
+                </button>
+                <a href="{% url 'inventory:supplier_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

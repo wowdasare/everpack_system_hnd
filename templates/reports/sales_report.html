@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Report - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-bar-chart"></i> Sales Report
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'reports:home' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+    <a href="{% url 'reports:export_sales_pdf' %}" class="btn btn-danger">
+        <i class="bi bi-file-pdf"></i> Export PDF
+    </a>
+    <a href="{% url 'reports:export_sales_excel' %}" class="btn btn-success">
+        <i class="bi bi-file-excel"></i> Export Excel
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Sales Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_sales }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-receipt fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">GHS {{ total_revenue|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Average Order</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">GHS {{ avg_order_value|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calculator fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Today's Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">GHS {{ today_sales|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Period Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">GHS {{ today_sales|floatformat:2 }}</h4>
+                <p class="text-muted">Today's Sales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">GHS {{ week_sales|floatformat:2 }}</h4>
+                <p class="text-muted">This Week</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">GHS {{ month_sales|floatformat:2 }}</h4>
+                <p class="text-muted">This Month</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Status Breakdown -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Payment Status Breakdown</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-success">{{ paid_sales }}</h3>
+                        <span class="badge bg-success">Paid</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-warning">{{ pending_sales }}</h3>
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-info">{{ partial_sales }}</h3>
+                        <span class="badge bg-info">Partial</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-secondary">{{ total_sales }}</h3>
+                        <span class="badge bg-secondary">Total Sales</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Sales</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in recent_sales %}
+                            <tr>
+                                <td><a href="{% url 'sales:sale_detail' sale.pk %}">{{ sale.invoice_number }}</a></td>
+                                <td>{{ sale.customer.name }}</td>
+                                <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
+                                <td><strong>GHS {{ sale.total_amount }}</strong></td>
+                                <td>
+                                    <span class="badge 
+                                        {% if sale.payment_status == 'PAID' %}bg-success
+                                        {% elif sale.payment_status == 'PENDING' %}bg-warning text-dark
+                                        {% elif sale.payment_status == 'PARTIAL' %}bg-info
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ sale.get_payment_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    No sales data available
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

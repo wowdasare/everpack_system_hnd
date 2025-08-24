@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Movement - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-arrow-up-right"></i> Record Stock Movement
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Movements
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-up-right"></i> Stock Movement Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_product" class="form-label">Product <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_product" name="product" required>
+                                    <option value="">Select Product</option>
+                                    {% for product in form.product.field.queryset %}
+                                        <option value="{{ product.pk }}" 
+                                                data-current-stock="{{ product.current_stock }}"
+                                                data-sku="{{ product.sku }}"
+                                                {% if form.product.value == product.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ product.name }} ({{ product.sku }}) - Stock: {{ product.current_stock }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a product.</div>
+                                {% if form.product.errors %}
+                                    <div class="text-danger small">{{ form.product.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_movement_type" class="form-label">Movement Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_movement_type" name="movement_type" required>
+                                    {% for value, label in form.movement_type.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.movement_type.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select movement type.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="id_quantity" name="quantity" 
+                                       value="{{ form.quantity.value|default_if_none:'' }}" required min="1">
+                                <div class="invalid-feedback">Please provide a valid quantity.</div>
+                                {% if form.quantity.errors %}
+                                    <div class="text-danger small">{{ form.quantity.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_reason" class="form-label">Reason <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_reason" name="reason" required>
+                                    {% for value, label in form.reason.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.reason.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a reason.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_reference_number" class="form-label">Reference Number</label>
+                                <input type="text" class="form-control" id="id_reference_number" name="reference_number" 
+                                       value="{{ form.reference_number.value|default_if_none:'' }}" 
+                                       placeholder="Invoice, PO, or Receipt number">
+                                <div class="form-text">Optional: Invoice, Purchase Order, or Receipt number</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="id_notes" name="notes" rows="3"
+                                  placeholder="Additional notes about this stock movement...">{{ form.notes.value|default_if_none:'' }}</textarea>
+                    </div>
+
+                    <!-- Stock Preview -->
+                    <div class="row" id="stock-preview" style="display: none;">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Current Stock:</strong> <span id="current-stock">0</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>After Movement:</strong> <span id="new-stock">0</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Change:</strong> <span id="stock-change">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> Record Movement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Stock preview calculation
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('id_product');
+    const movementTypeSelect = document.getElementById('id_movement_type');
+    const quantityInput = document.getElementById('id_quantity');
+    const stockPreview = document.getElementById('stock-preview');
+    
+    function updateStockPreview() {
+        const selectedOption = productSelect.selectedOptions[0];
+        if (!selectedOption || !selectedOption.value) {
+            stockPreview.style.display = 'none';
+            return;
+        }
+        
+        const currentStock = parseInt(selectedOption.dataset.currentStock) || 0;
+        const quantity = parseInt(quantityInput.value) || 0;
+        const movementType = movementTypeSelect.value;
+        
+        if (quantity > 0) {
+            let newStock;
+            let change;
+            
+            switch(movementType) {
+                case 'IN':
+                    newStock = currentStock + quantity;
+                    change = `+${quantity}`;
+                    break;
+                case 'OUT':
+                    newStock = currentStock - quantity;
+                    change = `-${quantity}`;
+                    break;
+                case 'ADJUSTMENT':
+                    // For adjustment, quantity represents the final stock level
+                    newStock = quantity;
+                    change = quantity - currentStock;
+                    change = change >= 0 ? `+${change}` : `${change}`;
+                    break;
+                default:
+                    newStock = currentStock;
+                    change = '0';
+            }
+            
+            document.getElementById('current-stock').textContent = currentStock;
+            document.getElementById('new-stock').textContent = newStock;
+            document.getElementById('stock-change').textContent = change;
+            
+            // Show warning for negative stock
+            if (newStock < 0) {
+                document.getElementById('new-stock').className = 'text-danger';
+            } else {
+                document.getElementById('new-stock').className = 'text-success';
+            }
+            
+            stockPreview.style.display = 'block';
+        } else {
+            stockPreview.style.display = 'none';
+        }
+    }
+    
+    productSelect.addEventListener('change', updateStockPreview);
+    movementTypeSelect.addEventListener('change', updateStockPreview);
+    quantityInput.addEventListener('input', updateStockPreview);
+});
+</script>
+{% endblock %}

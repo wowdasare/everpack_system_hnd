@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Customer{% else %}Add Customer{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-person-plus"></i> {% if object %}Edit Customer{% else %}Add New Customer{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Customers
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge"></i> 
+                    {% if object %}Edit Customer: {{ object.name }}{% else %}Customer Information{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Customer Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="id_name" name="name" 
+                                       value="{{ form.name.value|default_if_none:'' }}" required maxlength="200">
+                                <div class="invalid-feedback">Please provide a customer name.</div>
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_customer_type" class="form-label">Customer Type</label>
+                                <select class="form-select" id="id_customer_type" name="customer_type">
+                                    {% for value, label in form.customer_type.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.customer_type.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="id_phone" name="phone" 
+                                       value="{{ form.phone.value|default_if_none:'' }}" required maxlength="20"
+                                       placeholder="+233-XX-XXX-XXXX">
+                                <div class="invalid-feedback">Please provide a phone number.</div>
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="id_email" name="email" 
+                                       value="{{ form.email.value|default_if_none:'' }}" 
+                                       placeholder="customer@email.com">
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_address" class="form-label">Address</label>
+                        <textarea class="form-control" id="id_address" name="address" rows="2"
+                                  placeholder="Customer address...">{{ form.address.value|default_if_none:'' }}</textarea>
+                        {% if form.address.errors %}
+                            <div class="text-danger small">{{ form.address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Business Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_tin_number" class="form-label">TIN Number</label>
+                                <input type="text" class="form-control" id="id_tin_number" name="tin_number" 
+                                       value="{{ form.tin_number.value|default_if_none:'' }}" maxlength="50"
+                                       placeholder="Tax Identification Number">
+                                <div class="form-text">For businesses only</div>
+                                {% if form.tin_number.errors %}
+                                    <div class="text-danger small">{{ form.tin_number.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_credit_limit" class="form-label">Credit Limit (GHS)</label>
+                                <input type="number" class="form-control" id="id_credit_limit" name="credit_limit" 
+                                       value="{{ form.credit_limit.value|default_if_none:'0' }}" step="0.01" min="0">
+                                <div class="form-text">Maximum credit allowed</div>
+                                {% if form.credit_limit.errors %}
+                                    <div class="text-danger small">{{ form.credit_limit.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Customer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Type Information -->
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Customer Types:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Retail:</strong> Individual customers, walk-in buyers</li>
+                            <li><strong>Wholesale:</strong> Businesses buying in bulk</li>
+                            <li><strong>Distributor:</strong> Resellers, large-volume buyers</li>
+                        </ul>
+                    </div>
+
+                    {% if object %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-success">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <strong>Total Purchases:</strong> GHS {{ object.total_purchases|floatformat:2 }}
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <strong>Outstanding Balance:</strong> GHS {{ object.outstanding_balance|floatformat:2 }}
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <strong>Member Since:</strong> {{ object.created_at|date:"M Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {% if object %}Update Customer{% else %}Create Customer{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Customer type change handler
+document.getElementById('id_customer_type').addEventListener('change', function() {
+    const customerType = this.value;
+    const tinField = document.getElementById('id_tin_number').closest('.mb-3');
+    const creditLimitField = document.getElementById('id_credit_limit');
+    
+    if (customerType === 'DISTRIBUTOR' || customerType === 'WHOLESALE') {
+        tinField.style.display = 'block';
+        creditLimitField.value = creditLimitField.value || '1000';
+    } else {
+        tinField.style.display = 'block'; // Keep visible but not required
+        creditLimitField.value = creditLimitField.value || '0';
+    }
+});
+</script>
+{% endblock %}

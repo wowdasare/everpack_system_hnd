@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-speedometer2"></i> Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Products</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-products">{{ total_products }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-boxes fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Today's Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="today-sales">{{ today_sales }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Low Stock Items</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="low-stock-count">{{ low_stock_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Customers</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-customers">{{ total_customers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Sales Overview (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" width="100" height="40"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Low Stock Alerts</h6>
+                <a href="{% url 'inventory:low_stock' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div id="low-stock-alerts">
+                    <p class="text-muted">No low stock alerts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Sales</h6>
+                <a href="{% url 'sales:sale_list' %}" class="btn btn-sm btn-primary">View All Sales</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="recent-sales-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in recent_sales %}
+                            <tr>
+                                <td><a href="{% url 'sales:sale_detail' sale.pk %}">{{ sale.invoice_number }}</a></td>
+                                <td>{{ sale.customer.name }}</td>
+                                <td>GHS {{ sale.total_amount }}</td>
+                                <td>
+                                    <span class="badge {% if sale.payment_status == 'PAID' %}bg-success{% elif sale.payment_status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ sale.get_payment_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ sale.sale_date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No recent sales</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let salesChart; // Global variable to store chart instance
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts and load dashboard data
+    initializeDashboard();
+});
+
+function initializeDashboard() {
+    // Sales Chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Daily Sales (GHS)',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'GHS ' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Load dashboard data
+    loadDashboardData();
+}
+
+function loadDashboardData() {
+    // Load sales chart data
+    fetch('{% url "dashboard:sales_chart_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update the chart with real data
+            salesChart.data.labels = data.labels;
+            salesChart.data.datasets[0].data = data.data;
+            salesChart.update();
+        })
+        .catch(error => {
+            console.error('Error loading sales chart data:', error);
+        });
+    
+    // Load inventory alerts
+    fetch('{% url "dashboard:inventory_alerts_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            const alertsContainer = document.getElementById('low-stock-alerts');
+            if (data.alerts.length > 0) {
+                let alertsHtml = '';
+                data.alerts.forEach(alert => {
+                    alertsHtml += `
+                        <div class="alert alert-warning alert-sm mb-2">
+                            <strong>${alert.sku}</strong><br>
+                            ${alert.name}<br>
+                            <small>Stock: ${alert.current_stock} (Min: ${alert.minimum_level})</small>
+                        </div>
+                    `;
+                });
+                alertsContainer.innerHTML = alertsHtml;
+            } else {
+                alertsContainer.innerHTML = '<p class="text-muted">No low stock alerts</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading inventory alerts:', error);
+            document.getElementById('low-stock-alerts').innerHTML = '<p class="text-danger">Error loading alerts</p>';
+        });
+}
+</script>
+{% endblock %}

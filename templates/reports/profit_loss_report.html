@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Profit & Loss Report - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-graph-up"></i> Profit & Loss Report
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'reports:home' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <h4 class="text-success">GHS {{ total_revenue|floatformat:2 }}</h4>
+                <p class="text-muted">Total Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <h4 class="text-danger">GHS {{ total_cost|floatformat:2 }}</h4>
+                <p class="text-muted">Total Costs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <h4 class="{% if gross_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    GHS {{ gross_profit|floatformat:2 }}
+                </h4>
+                <p class="text-muted">Gross Profit</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Profit & Loss Statement</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <td><strong>Revenue</strong></td>
+                        <td class="text-end"><strong>GHS {{ total_revenue|floatformat:2 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="ps-3">Sales Revenue</td>
+                        <td class="text-end">GHS {{ total_revenue|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Costs</strong></td>
+                        <td class="text-end"><strong>GHS {{ total_cost|floatformat:2 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="ps-3">Cost of Goods</td>
+                        <td class="text-end">GHS {{ total_cost|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td><strong>Gross Profit</strong></td>
+                        <td class="text-end"><strong class="{% if gross_profit >= 0 %}text-success{% else %}text-danger{% endif %}">GHS {{ gross_profit|floatformat:2 }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

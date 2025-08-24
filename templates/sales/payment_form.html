@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Payment - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-credit-card-2-front"></i> Add Payment
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:payment_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Payments
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Payment Details</h6>
+            </div>
+            <div class="card-body">
+                {% if form.instance.sale %}
+                <!-- Sale Information -->
+                <div class="alert alert-info mb-4">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-info-circle"></i> Sale Information
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Invoice:</strong> {{ form.instance.sale.invoice_number }}<br>
+                            <strong>Customer:</strong> {{ form.instance.sale.customer.name }}<br>
+                            <strong>Date:</strong> {{ form.instance.sale.sale_date|date:"M d, Y" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Total Amount:</strong> GHS {{ form.instance.sale.total_amount }}<br>
+                            <strong>Amount Paid:</strong> GHS {{ form.instance.sale.amount_paid }}<br>
+                            <strong>Balance Due:</strong> <span class="text-danger">GHS {{ form.instance.sale.balance_due }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.sale.id_for_label }}" class="form-label">
+                                <i class="bi bi-receipt"></i> Sale/Invoice *
+                            </label>
+                            {{ form.sale }}
+                            {% if form.sale.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.sale.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">
+                                <i class="bi bi-currency-dollar"></i> Payment Amount (GHS) *
+                            </label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.amount.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                <i class="bi bi-credit-card"></i> Payment Method *
+                            </label>
+                            {{ form.payment_method }}
+                            {% if form.payment_method.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.payment_method.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.reference_number.id_for_label }}" class="form-label">
+                                <i class="bi bi-hash"></i> Reference Number
+                            </label>
+                            {{ form.reference_number }}
+                            <small class="form-text text-muted">
+                                Transaction ID, Check number, etc.
+                            </small>
+                            {% if form.reference_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.reference_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            <i class="bi bi-chat-left-text"></i> Notes
+                        </label>
+                        {{ form.notes }}
+                        <small class="form-text text-muted">
+                            Additional information about this payment
+                        </small>
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.notes.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.created_by.id_for_label }}" class="form-label">
+                            <i class="bi bi-person"></i> Processed By *
+                        </label>
+                        {{ form.created_by }}
+                        {% if form.created_by.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.created_by.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Process Payment
+                        </button>
+                        <a href="{% url 'sales:payment_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-success">Payment Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-lightbulb"></i> Tips
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Verify payment amount before processing</li>
+                        <li>Always get reference numbers for electronic payments</li>
+                        <li>For partial payments, update sale status accordingly</li>
+                        <li>Keep notes for audit trails</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-exclamation-triangle"></i> Important
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Cash payments should be immediately deposited</li>
+                        <li>Verify mobile money payments before confirming</li>
+                        <li>Check bank transfers are cleared before marking as paid</li>
+                    </ul>
+                </div>
+                
+                <!-- Payment Method Info -->
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0 text-info">
+                            <i class="bi bi-info-circle"></i> Payment Methods
+                        </h6>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="badge bg-primary">Cash</span>
+                            <small>Immediate</small>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="badge bg-success">Mobile Money</span>
+                            <small>MTN, Vodafone, AirtelTigo</small>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="badge bg-info">Bank Transfer</span>
+                            <small>2-3 business days</small>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="badge bg-warning">Cheque</span>
+                            <small>5-7 business days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-populate created_by with current user
+    const createdByField = document.getElementById('id_created_by');
+    if (createdByField && !createdByField.value) {
+        // Set to current user if available
+        createdByField.selectedIndex = 1; // Typically the first actual user after empty option
+    }
+    
+    // Format amount input
+    const amountField = document.getElementById('id_amount');
+    if (amountField) {
+        amountField.addEventListener('input', function(e) {
+            // Remove non-numeric characters except decimal point
+            this.value = this.value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = this.value.split('.');
+            if (parts.length > 2) {
+                this.value = parts[0] + '.' + parts[1];
+            }
+            
+            // Limit to 2 decimal places
+            if (parts[1] && parts[1].length > 2) {
+                this.value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+        });
+    }
+    
+    // Payment method change handler
+    const paymentMethodField = document.getElementById('id_payment_method');
+    const referenceField = document.getElementById('id_reference_number');
+    
+    if (paymentMethodField && referenceField) {
+        paymentMethodField.addEventListener('change', function() {
+            const method = this.value;
+            const referenceLabel = document.querySelector('label[for="id_reference_number"]');
+            const referenceHelp = referenceField.nextElementSibling;
+            
+            switch(method) {
+                case 'MOBILE_MONEY':
+                    referenceField.placeholder = 'e.g., MOMO123456789';
+                    referenceHelp.textContent = 'Mobile Money transaction ID';
+                    break;
+                case 'BANK_TRANSFER':
+                    referenceField.placeholder = 'e.g., TXN987654321';
+                    referenceHelp.textContent = 'Bank transaction reference';
+                    break;
+                case 'CHEQUE':
+                    referenceField.placeholder = 'e.g., CHQ001234';
+                    referenceHelp.textContent = 'Cheque number';
+                    break;
+                case 'CASH':
+                    referenceField.placeholder = 'Receipt number (optional)';
+                    referenceHelp.textContent = 'Cash receipt number if applicable';
+                    break;
+                default:
+                    referenceField.placeholder = 'Reference number';
+                    referenceHelp.textContent = 'Transaction ID, Check number, etc.';
+            }
+        });
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amountField = document.getElementById('id_amount');
+    const saleField = document.getElementById('id_sale');
+    
+    // Basic validation
+    if (!amountField.value || parseFloat(amountField.value) <= 0) {
+        e.preventDefault();
+        showError('Invalid Amount', 'Please enter a valid payment amount greater than 0.');
+        amountField.focus();
+        return;
+    }
+    
+    if (!saleField.value) {
+        e.preventDefault();
+        showError('Sale Required', 'Please select a sale/invoice for this payment.');
+        saleField.focus();
+        return;
+    }
+    
+    // Confirm payment processing
+    const amount = parseFloat(amountField.value).toFixed(2);
+    showConfirm(
+        'Process Payment?',
+        `Are you sure you want to process a payment of GHS ${amount}?`,
+        function() {
+            // Submit the form
+            document.querySelector('form').submit();
+        }
+    );
+    
+    e.preventDefault();
+});
+</script>
+{% endblock %}

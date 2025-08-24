@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EverPack System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+          /* Primary Brand Colors */
+          --primary-900: #1a252f;
+          --primary-800: #2c3e50;
+          --primary-700: #34495e;
+          --primary-600: #4a6174;
+          --primary-500: #5d6d7e;
+          --primary-400: #7f8c8d;
+          --primary-300: #95a5a6;
+          --primary-200: #bdc3c7;
+          --primary-100: #ecf0f1;
+          --primary-50: #f8f9fa;
+
+          /* Secondary/Accent Colors */
+          --blue-600: #2980b9;
+          --blue-500: #3498db;
+          --blue-400: #5dade2;
+          --blue-300: #85c1e9;
+          --blue-200: #aed6f1;
+          --blue-100: #d6eaf8;
+          --blue-50: #ebf5fb;
+
+          /* Status Colors */
+          --success-600: #1e8449;
+          --success-500: #27ae60;
+          --success-400: #52c882;
+          --success-100: #d5f4e6;
+          --success-50: #eafaf1;
+
+          --warning-600: #d68910;
+          --warning-500: #f39c12;
+          --warning-400: #f5b041;
+          --warning-100: #fcf3cf;
+          --warning-50: #fef9e7;
+
+          --danger-600: #c0392b;
+          --danger-500: #e74c3c;
+          --danger-400: #ec7063;
+          --danger-100: #fadbd8;
+          --danger-50: #fdedec;
+
+          --info-600: #138496;
+          --info-500: #17a2b8;
+          --info-400: #45b7c8;
+          --info-100: #d1ecf1;
+          --info-50: #e8f6f8;
+
+          /* Neutral Grays */
+          --gray-900: #212529;
+          --gray-800: #343a40;
+          --gray-700: #495057;
+          --gray-600: #6c757d;
+          --gray-500: #adb5bd;
+          --gray-400: #ced4da;
+          --gray-300: #dee2e6;
+          --gray-200: #e9ecef;
+          --gray-100: #f8f9fa;
+          --gray-50: #ffffff;
+
+          /* Background Colors */
+          --bg-primary: #ffffff;
+          --bg-secondary: #f8f9fa;
+          --bg-tertiary: #e9ecef;
+          --bg-dark: #2c3e50;
+          --bg-overlay: rgba(44, 62, 80, 0.8);
+
+          /* Text Colors */
+          --text-primary: #212529;
+          --text-secondary: #6c757d;
+          --text-muted: #adb5bd;
+          --text-white: #ffffff;
+          --text-light: rgba(255, 255, 255, 0.8);
+
+          /* Border Colors */
+          --border-light: #dee2e6;
+          --border-medium: #ced4da;
+          --border-dark: #6c757d;
+
+          /* Shadow Colors */
+          --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+          --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+          --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+          --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Override Bootstrap with custom colors */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-800), var(--primary-700)) !important;
+            border-bottom: 2px solid var(--primary-600);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--text-white) !important;
+            font-size: 1.4rem;
+        }
+        
+        .navbar-nav .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            color: var(--text-white) !important;
+        }
+        
+        .dropdown-menu {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-lg);
+            border-radius: 8px;
+        }
+        
+        .dropdown-item {
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--blue-50);
+            color: var(--blue-600);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-100), var(--primary-50));
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            border-color: var(--blue-600);
+            color: var(--text-white);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+            border-color: var(--blue-600);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-500), var(--success-600));
+            border-color: var(--success-600);
+            color: var(--text-white);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, var(--success-600), var(--success-500));
+            border-color: var(--success-600);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-500), var(--warning-600));
+            border-color: var(--warning-600);
+            color: var(--text-white);
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, var(--warning-600), var(--warning-500));
+            border-color: var(--warning-600);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-500), var(--danger-600));
+            border-color: var(--danger-600);
+            color: var(--text-white);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, var(--info-500), var(--info-600));
+            border-color: var(--info-600);
+            color: var(--text-white);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-500), var(--gray-600));
+            border-color: var(--gray-600);
+            color: var(--text-white);
+        }
+
+        /* Badges */
+        .badge.bg-primary { background: var(--blue-500) !important; }
+        .badge.bg-success { background: var(--success-500) !important; }
+        .badge.bg-warning { background: var(--warning-500) !important; color: var(--text-white) !important; }
+        .badge.bg-danger { background: var(--danger-500) !important; }
+        .badge.bg-info { background: var(--info-500) !important; }
+        .badge.bg-secondary { background: var(--gray-600) !important; }
+
+        /* Alerts */
+        .alert-primary { 
+            background: var(--blue-50); 
+            border-color: var(--blue-200); 
+            color: var(--blue-600); 
+        }
+        .alert-success { 
+            background: var(--success-50); 
+            border-color: var(--success-100); 
+            color: var(--success-600); 
+        }
+        .alert-warning { 
+            background: var(--warning-50); 
+            border-color: var(--warning-100); 
+            color: var(--warning-600); 
+        }
+        .alert-danger { 
+            background: var(--danger-50); 
+            border-color: var(--danger-100); 
+            color: var(--danger-600); 
+        }
+        .alert-info { 
+            background: var(--info-50); 
+            border-color: var(--info-100); 
+            color: var(--info-600); 
+        }
+
+        /* Tables */
+        .table {
+            color: var(--text-primary);
+        }
+        
+        .table-light {
+            background: var(--primary-50);
+            border-color: var(--border-light);
+        }
+        
+        .table-hover tbody tr:hover {
+            background: var(--blue-50);
+        }
+
+        /* Forms */
+        .form-control {
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--blue-400);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        /* Page Background */
+        body {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            min-height: 100vh;
+            background: var(--bg-secondary);
+        }
+
+        /* Page Title */
+        .h2, h2 {
+            color: var(--primary-700);
+            font-weight: 600;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--bg-secondary);
+        }
+        
+        /* Mobile Responsive Improvements */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .card-body {
+                padding: 0.75rem;
+            }
+            
+            .h2, h2 {
+                font-size: 1.5rem;
+            }
+            
+            .page-actions .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .page-actions .btn-group .btn {
+                border-radius: 0.375rem !important;
+                margin-bottom: 0.25rem;
+            }
+            
+            /* Make tables more mobile friendly */
+            .table-mobile-stack {
+                display: block;
+            }
+            
+            .table-mobile-stack thead {
+                display: none;
+            }
+            
+            .table-mobile-stack tr {
+                display: block;
+                border: 1px solid #dee2e6;
+                margin-bottom: 0.5rem;
+                border-radius: 0.375rem;
+            }
+            
+            .table-mobile-stack td {
+                display: block;
+                text-align: right;
+                border: none;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .table-mobile-stack td::before {
+                content: attr(data-label) ": ";
+                float: left;
+                font-weight: bold;
+            }
+        }
+        
+        /* Better card responsive behavior */
+        .card-responsive {
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 576px) {
+            .card-responsive .card-body {
+                padding: 0.5rem;
+            }
+            
+            .row.no-gutters > [class*="col-"] {
+                padding: 0.25rem;
+            }
+        }
+        
+        /* Improved button spacing */
+        .btn-toolbar .btn-group {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Better dropdown behavior on mobile */
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                position: absolute !important;
+                transform: none !important;
+                width: auto;
+                min-width: 200px;
+                border: 1px solid #dee2e6;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                margin-top: 0.125rem;
+                z-index: 1000;
+            }
+            
+            /* Prevent dropdown from extending beyond viewport */
+            .navbar-nav .dropdown-menu {
+                left: auto;
+                right: 0;
+            }
+            
+            /* Ensure dropdown doesn't cause horizontal scroll */
+            .navbar-collapse {
+                overflow: hidden;
+            }
+            
+            .dropdown-menu-end {
+                right: 0 !important;
+                left: auto !important;
+            }
+        }
+        
+        /* Fix navbar collapse spacing */
+        .navbar-collapse.show,
+        .navbar-collapse.collapsing {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        /* Prevent horizontal overflow */
+        body {
+            overflow-x: hidden;
+        }
+        
+        .container-fluid {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        /* Additional mobile fixes */
+        @media (max-width: 576px) {
+            .btn-group .btn {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.4rem;
+            }
+            
+            .table-responsive {
+                border: none;
+            }
+            
+            .card {
+                margin-bottom: 0.75rem;
+            }
+            
+            .h2, h2 {
+                font-size: 1.25rem;
+            }
+            
+            .display-1 {
+                font-size: 3rem;
+            }
+        }
+
+        /* SweetAlert2 Custom Styling */
+        .swal2-popup {
+            color: #212529 !important;
+        }
+        
+        .swal2-title {
+            color: #212529 !important;
+        }
+        
+        .swal2-html-container {
+            color: #495057 !important;
+        }
+        
+        .swal2-content {
+            color: #495057 !important;
+        }
+        
+        .swal2-icon.swal2-warning {
+            border-color: #f39c12 !important;
+            color: #f39c12 !important;
+        }
+        
+        .swal2-icon.swal2-error {
+            border-color: #e74c3c !important;
+            color: #e74c3c !important;
+        }
+        
+        .swal2-icon.swal2-success {
+            border-color: #27ae60 !important;
+            color: #27ae60 !important;
+        }
+        
+        .swal2-icon.swal2-info {
+            border-color: #3498db !important;
+            color: #3498db !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard:home' %}">
+                <i class="bi bi-box-seam"></i> EverPack System
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:home' %}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="inventoryDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-boxes"></i> Inventory
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'inventory:product_list' %}">Products</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:supplier_list' %}">Suppliers</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:category_list' %}">Categories</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:stock_movement_list' %}">Stock Movements</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:low_stock' %}">Low Stock Alert</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-cart"></i> Sales
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'sales:sale_list' %}">Sales</a></li>
+                            <li><a class="dropdown-item" href="{% url 'sales:sale_create' %}">New Sale</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'sales:customer_list' %}">Customers</a></li>
+                            <li><a class="dropdown-item" href="{% url 'sales:payment_list' %}">Payments</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-graph-up"></i> Reports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'reports:sales_report' %}">Sales Reports</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:inventory_report' %}">Inventory Reports</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:financial_report' %}">Financial Reports</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:profit_loss_report' %}">Profit & Loss</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:user_list' %}"><i class="bi bi-people"></i> Manage Users</a></li>
+                            <li><a class="dropdown-item" href="/Admin/"><i class="bi bi-gear"></i> Admin Panel</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% else %}
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <main class="col-md-12 ms-sm-auto px-md-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-start pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 mb-2 mb-md-0">{% block page_title %}Page Title{% endblock %}</h1>
+                    <div class="page-actions">
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js for dashboard charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Global SweetAlert Handler -->
+    <script>
+        // SweetAlert configuration
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        // Handle Django messages with SweetAlert
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    Toast.fire({
+                        icon: 'success',
+                        title: '{{ message|escapejs }}'
+                    });
+                {% elif message.tags == 'error' %}
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#d33'
+                    });
+                {% elif message.tags == 'warning' %}
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Warning!',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#f0ad4e'
+                    });
+                {% elif message.tags == 'info' %}
+                    Toast.fire({
+                        icon: 'info',
+                        title: '{{ message|escapejs }}'
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        // Global success function
+        window.showSuccess = function(title, text = '') {
+            Toast.fire({
+                icon: 'success',
+                title: title,
+                text: text
+            });
+        };
+
+        // Global error function
+        window.showError = function(title, text = '') {
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: text,
+                confirmButtonColor: '#d33'
+            });
+        };
+
+        // Global confirmation function
+        window.showConfirm = function(title, text, callback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'swal2-popup',
+                    title: 'swal2-title',
+                    htmlContainer: 'swal2-html-container'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && callback) {
+                    callback();
+                }
+            });
+        };
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

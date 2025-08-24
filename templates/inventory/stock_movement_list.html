@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Movements - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-arrow-up-right"></i> Stock Movements
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:stock_movement_add' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> Record Movement
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Reason</th>
+                        <th>Reference</th>
+                        <th>By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in movements %}
+                    <tr>
+                        <td>{{ movement.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <strong>{{ movement.product.name }}</strong><br>
+                            <small class="text-muted">{{ movement.product.sku }}</small>
+                        </td>
+                        <td>
+                            <span class="badge {% if movement.movement_type == 'IN' %}bg-success{% elif movement.movement_type == 'OUT' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ movement.get_movement_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if movement.movement_type == 'IN' %}+{% elif movement.movement_type == 'OUT' %}-{% endif %}{{ movement.quantity }}
+                        </td>
+                        <td>{{ movement.get_reason_display }}</td>
+                        <td>
+                            {% if movement.reference_number %}
+                                <code>{{ movement.reference_number }}</code>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ movement.created_by.get_full_name|default:movement.created_by.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-arrow-up-right fs-1"></i><br>
+                            No stock movements found.<br>
+                            <a href="{% url 'inventory:stock_movement_add' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Record First Movement
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

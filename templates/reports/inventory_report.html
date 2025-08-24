@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Report - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-boxes"></i> Inventory Report
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'reports:home' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+    <a href="{% url 'reports:export_inventory_pdf' %}" class="btn btn-danger">
+        <i class="bi bi-file-pdf"></i> Export PDF
+    </a>
+    <a href="{% url 'reports:export_inventory_excel' %}" class="btn btn-success">
+        <i class="bi bi-file-excel"></i> Export Excel
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Inventory Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Products</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-box-seam fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Stock Value</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">GHS {{ total_stock_value|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Low Stock Items</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ low_stock_products|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Categories -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-tags"></i> Product Categories</h6>
+            </div>
+            <div class="card-body">
+                {% for category in product_categories %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ category.category__name|default:"Uncategorized" }}</span>
+                    <span class="badge bg-primary">{{ category.count }} products</span>
+                </div>
+                {% empty %}
+                <p class="text-muted">No categories found</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Low Stock Alert</h6>
+            </div>
+            <div class="card-body">
+                {% for product in low_stock_products|slice:":5" %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ product.name }}</strong><br>
+                        <small class="text-muted">{{ product.sku }}</small>
+                    </div>
+                    <span class="badge bg-warning text-dark">{{ product.current_stock }} {{ product.get_unit_display }}</span>
+                </div>
+                {% empty %}
+                <p class="text-success mb-0">
+                    <i class="bi bi-check-circle"></i> All products are adequately stocked
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Stock Movements -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Stock Movements</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Movement Type</th>
+                                <th>Quantity</th>
+                                <th>Reason</th>
+                                <th>Reference</th>
+                                <th>By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movement in recent_movements %}
+                            <tr>
+                                <td>{{ movement.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <strong>{{ movement.product.name }}</strong><br>
+                                    <small class="text-muted">{{ movement.product.sku }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge {% if movement.movement_type == 'IN' %}bg-success{% elif movement.movement_type == 'OUT' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ movement.get_movement_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if movement.movement_type == 'IN' %}+{% elif movement.movement_type == 'OUT' %}-{% endif %}{{ movement.quantity }}
+                                </td>
+                                <td>{{ movement.get_reason_display }}</td>
+                                <td>
+                                    {% if movement.reference_number %}
+                                        <code>{{ movement.reference_number }}</code>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ movement.created_by.get_full_name|default:movement.created_by.username }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    No stock movements found
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

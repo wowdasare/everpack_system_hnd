@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-graph-up"></i> Reports & Analytics
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Report Categories -->
+    <div class="col-lg-3 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-receipt"></i> Sales Reports</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-bar-chart"></i> Daily Sales
+                    </a>
+                    <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-calendar-week"></i> Weekly Sales
+                    </a>
+                    <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-calendar-month"></i> Monthly Sales
+                    </a>
+                    <a href="{% url 'reports:customer_report' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-people"></i> Customer Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-boxes"></i> Inventory Reports</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:inventory_report' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-list-check"></i> Stock Levels
+                    </a>
+                    <a href="{% url 'reports:inventory_report' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-arrow-repeat"></i> Stock Movements
+                    </a>
+                    <a href="{% url 'inventory:low_stock' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-exclamation-triangle"></i> Low Stock Alert
+                    </a>
+                    <a href="{% url 'reports:inventory_report' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-graph-up-arrow"></i> Valuation Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-calculator"></i> Financial Reports</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:financial_report' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-currency-dollar"></i> Revenue Report
+                    </a>
+                    <a href="{% url 'reports:profit_loss_report' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-graph-up"></i> Profit & Loss
+                    </a>
+                    <a href="{% url 'reports:financial_report' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-credit-card"></i> Outstanding Payments
+                    </a>
+                    <a href="{% url 'reports:financial_report' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark-text"></i> Tax Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0"><i class="bi bi-download"></i> Export Options</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:export_sales_pdf' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-pdf"></i> Sales PDF
+                    </a>
+                    <a href="{% url 'reports:export_sales_excel' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-file-excel"></i> Sales Excel
+                    </a>
+                    <a href="{% url 'reports:export_inventory_pdf' %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-pdf"></i> Inventory PDF
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="alert('Coming soon!')">
+                        <i class="bi bi-cloud-arrow-up"></i> Cloud Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-speedometer2"></i> Quick Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-primary">GHS {{ total_sales_this_month|floatformat:2 }}</h4>
+                        <small class="text-muted">Total Sales This Month</small>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-success">{{ products_in_stock }}</h4>
+                        <small class="text-muted">Products in Stock</small>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-info">{{ active_customers }}</h4>
+                        <small class="text-muted">Active Customers</small>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-warning">{{ low_stock_items }}</h4>
+                        <small class="text-muted">Low Stock Items</small>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-danger">{{ overdue_payments }}</h4>
+                        <small class="text-muted">Overdue Payments</small>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h4 class="text-secondary"><i class="bi bi-check-circle"></i></h4>
+                        <small class="text-muted">System Ready</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-check-circle"></i> System Status - All Systems Operational</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success rounded-circle p-2 text-white">
+                                    <i class="bi bi-database"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Database</h6>
+                                <small class="text-success">Connected</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success rounded-circle p-2 text-white">
+                                    <i class="bi bi-server"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Server</h6>
+                                <small class="text-success">Running</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success rounded-circle p-2 text-white">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Security</h6>
+                                <small class="text-success">Secure</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success rounded-circle p-2 text-white">
+                                    <i class="bi bi-cloud-check"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Backup</h6>
+                                <small class="text-success">Local Ready</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Product{% else %}Add Product{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-box-seam"></i> {% if object %}Edit Product{% else %}Add New Product{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam"></i> 
+                    {% if object %}Edit Product: {{ object.name }}{% else %}Product Information{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="id_name" name="name" 
+                                       value="{{ form.name.value|default_if_none:'' }}" required maxlength="200">
+                                <div class="invalid-feedback">Please provide a valid product name.</div>
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_sku" class="form-label">SKU <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="id_sku" name="sku" 
+                                       value="{{ form.sku.value|default_if_none:'' }}" required maxlength="50"
+                                       placeholder="e.g., TP-PREM-24">
+                                <div class="invalid-feedback">Please provide a unique SKU.</div>
+                                {% if form.sku.errors %}
+                                    <div class="text-danger small">{{ form.sku.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="id_description" name="description" rows="3"
+                                  placeholder="Product description...">{{ form.description.value|default_if_none:'' }}</textarea>
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Category and Supplier -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in form.category.field.queryset %}
+                                        <option value="{{ category.pk }}" 
+                                                {% if form.category.value %}
+                                                    {% if category.pk == form.category.value or category.pk|stringformat:"s" == form.category.value|stringformat:"s" %}selected{% endif %}
+                                                {% endif %}>
+                                            {{ category.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a category.</div>
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_supplier" class="form-label">Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_supplier" name="supplier" required>
+                                    <option value="">Select Supplier</option>
+                                    {% for supplier in form.supplier.field.queryset %}
+                                        <option value="{{ supplier.pk }}"
+                                                {% if form.supplier.value %}
+                                                    {% if supplier.pk == form.supplier.value or supplier.pk|stringformat:"s" == form.supplier.value|stringformat:"s" %}selected{% endif %}
+                                                {% endif %}>
+                                            {{ supplier.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a supplier.</div>
+                                {% if form.supplier.errors %}
+                                    <div class="text-danger small">{{ form.supplier.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing and Unit -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_unit" class="form-label">Unit <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_unit" name="unit" required>
+                                    {% for value, label in form.unit.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.unit.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_cost_price" class="form-label">Cost Price (GHS) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="id_cost_price" name="cost_price" 
+                                       value="{{ form.cost_price.value|default_if_none:'' }}" required step="0.01" min="0">
+                                <div class="invalid-feedback">Please provide a valid cost price.</div>
+                                {% if form.cost_price.errors %}
+                                    <div class="text-danger small">{{ form.cost_price.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_selling_price" class="form-label">Selling Price (GHS) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="id_selling_price" name="selling_price" 
+                                       value="{{ form.selling_price.value|default_if_none:'' }}" required step="0.01" min="0">
+                                <div class="invalid-feedback">Please provide a valid selling price.</div>
+                                {% if form.selling_price.errors %}
+                                    <div class="text-danger small">{{ form.selling_price.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_minimum_stock_level" class="form-label">Min Stock Level</label>
+                                <input type="number" class="form-control" id="id_minimum_stock_level" name="minimum_stock_level" 
+                                       value="{{ form.minimum_stock_level.value|default_if_none:'10' }}" min="0">
+                                {% if form.minimum_stock_level.errors %}
+                                    <div class="text-danger small">{{ form.minimum_stock_level.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Fields -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_barcode" class="form-label">Barcode</label>
+                                <input type="text" class="form-control" id="id_barcode" name="barcode" 
+                                       value="{{ form.barcode.value|default_if_none:'' }}" maxlength="100">
+                                {% if form.barcode.errors %}
+                                    <div class="text-danger small">{{ form.barcode.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Product
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Margin Display -->
+                    {% if object %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <strong>Current Stock:</strong> {{ object.current_stock }} {{ object.get_unit_display }}
+                                        {% if object.is_low_stock %}
+                                            <span class="badge bg-warning ms-2">Low Stock</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <strong>Profit Margin:</strong> {{ object.profit_margin|floatformat:2 }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {% if object %}Update Product{% else %}Create Product{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Bootstrap form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Calculate profit margin
+document.getElementById('id_cost_price').addEventListener('input', calculateMargin);
+document.getElementById('id_selling_price').addEventListener('input', calculateMargin);
+
+function calculateMargin() {
+    const costPrice = parseFloat(document.getElementById('id_cost_price').value) || 0;
+    const sellingPrice = parseFloat(document.getElementById('id_selling_price').value) || 0;
+    
+    if (costPrice > 0) {
+        const margin = ((sellingPrice - costPrice) / costPrice) * 100;
+        console.log(`Profit Margin: ${margin.toFixed(2)}%`);
+    }
+}
+</script>
+{% endblock %}

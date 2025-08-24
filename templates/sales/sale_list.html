@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-cart"></i> Sales Transactions
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:sale_create' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> New Sale
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Sales Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ sales|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-receipt fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_revenue }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Payments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ pending_payments }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Today's Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ today_sales }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="text-center">
+                            <i class="bi bi-calendar3 fs-2 text-gray-300"></i>
+                            <div class="small text-muted fw-bold" id="today-day" style="margin-top: -10px;">
+                                <!-- Day will be inserted by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="card shadow">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">All Sales Transactions</h6>
+    </div>
+    <div class="card-body">
+        <!-- Search and Filter -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search sales..." onkeyup="filterTable()">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter" onchange="filterTable()">
+                    <option value="">All Status</option>
+                    <option value="PAID">Paid</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="PARTIAL">Partial</option>
+                    <option value="OVERDUE">Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="methodFilter" onchange="filterTable()">
+                    <option value="">All Methods</option>
+                    <option value="CASH">Cash</option>
+                    <option value="MOBILE_MONEY">Mobile Money</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="CHEQUE">Cheque</option>
+                    <option value="CREDIT">Credit</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="salesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'sales:sale_detail' sale.pk %}" class="fw-bold text-decoration-none">
+                                {{ sale.invoice_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <div>
+                                <strong>{{ sale.customer.name }}</strong><br>
+                                <small class="text-muted">{{ sale.customer.get_customer_type_display }}</small>
+                            </div>
+                        </td>
+                        <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ sale.total_items }} items</span>
+                        </td>
+                        <td>
+                            <strong class="text-success">GHS {{ sale.total_amount }}</strong>
+                            {% if sale.balance_due > 0 %}
+                                <br><small class="text-danger">Due: GHS {{ sale.balance_due }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ sale.get_payment_method_display }}</span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if sale.payment_status == 'PAID' %}bg-success
+                                {% elif sale.payment_status == 'PENDING' %}bg-warning text-dark
+                                {% elif sale.payment_status == 'PARTIAL' %}bg-info
+                                {% else %}bg-danger{% endif %}">
+                                {{ sale.get_payment_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'sales:sale_edit' sale.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'sales:invoice_pdf' sale.pk %}" class="btn btn-outline-success" title="Print Invoice">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                {% if sale.payment_status != 'PAID' %}
+                                <a href="{% url 'sales:payment_add' sale.pk %}" class="btn btn-outline-info" title="Add Payment">
+                                    <i class="bi bi-credit-card"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-cart-x fs-1"></i><br>
+                            No sales found.<br>
+                            <a href="{% url 'sales:sale_create' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Create Your First Sale
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Display today's day name
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const todayDay = dayNames[today.getDay()];
+    
+    const dayElement = document.getElementById('today-day');
+    if (dayElement) {
+        dayElement.textContent = todayDay;
+    }
+});
+
+function filterTable() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const methodFilter = document.getElementById('methodFilter').value;
+    const table = document.getElementById('salesTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        
+        if (cells.length === 0) continue; // Skip if no cells (empty state)
+        
+        const invoice = cells[0].textContent.toLowerCase();
+        const customer = cells[1].textContent.toLowerCase();
+        const status = cells[6].textContent.trim();
+        const method = cells[5].textContent.trim();
+        
+        const matchesSearch = invoice.includes(searchInput) || customer.includes(searchInput);
+        const matchesStatus = !statusFilter || status.includes(statusFilter);
+        const matchesMethod = !methodFilter || method.includes(methodFilter);
+        
+        if (matchesSearch && matchesStatus && matchesMethod) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+// Auto refresh every 30 seconds
+setInterval(function() {
+    if (document.visibilityState === 'visible') {
+        location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

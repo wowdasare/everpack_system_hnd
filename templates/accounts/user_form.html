@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit User{% else %}Add User{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-person-plus"></i> {% if object %}Edit User{% else %}Add New User{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge"></i> 
+                    {% if object %}Edit User: {{ object.username }}{% else %}User Information{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="id_username" name="username" 
+                               value="{{ form.username.value|default_if_none:'' }}" required>
+                        {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="id_first_name" name="first_name" 
+                                       value="{{ form.first_name.value|default_if_none:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="id_last_name" name="last_name" 
+                                       value="{{ form.last_name.value|default_if_none:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="id_email" name="email" 
+                               value="{{ form.email.value|default_if_none:'' }}">
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if not object %}
+                    <!-- Password fields only for new users -->
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="id_password1" name="password1" required>
+                        {% if form.password1.errors %}
+                            <div class="text-danger small">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ form.password1.help_text }}</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="id_password2" name="password2" required>
+                        {% if form.password2.errors %}
+                            <div class="text-danger small">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ form.password2.help_text }}</small>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active"
+                                   {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_active">
+                                Active User
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {% if object %}Update User{% else %}Create User{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

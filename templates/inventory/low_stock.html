@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Low Stock Alert - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-exclamation-triangle text-warning"></i> Low Stock Alert
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-exclamation-triangle"></i> Low Stock Products</h5>
+            <p class="mb-0">The following products are below their minimum stock levels and require immediate attention.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Minimum Level</th>
+                        <th>Shortage</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in low_stock_products %}
+                    <tr class="table-warning">
+                        <td>
+                            <a href="{% url 'inventory:product_detail' product.pk %}" class="text-decoration-none">
+                                <strong>{{ product.name }}</strong>
+                            </a>
+                            <br><small class="text-muted">{{ product.supplier.name }}</small>
+                        </td>
+                        <td><code>{{ product.sku }}</code></td>
+                        <td>{{ product.category.name }}</td>
+                        <td>
+                            <strong class="text-danger">{{ product.current_stock }} {{ product.get_unit_display }}</strong>
+                        </td>
+                        <td>{{ product.minimum_stock_level }} {{ product.get_unit_display }}</td>
+                        <td>
+                            <strong class="text-danger">
+                                {{ product.minimum_stock_level|add:product.current_stock|add:"-1" }} needed
+                            </strong>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'inventory:stock_movement_add' %}?product={{ product.pk }}" class="btn btn-success" title="Add Stock">
+                                    <i class="bi bi-plus-circle"></i> Add Stock
+                                </a>
+                                <a href="{% url 'inventory:product_detail' product.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-success py-4">
+                            <i class="bi bi-check-circle fs-1"></i><br>
+                            <strong>No low stock alerts!</strong><br>
+                            All products are above their minimum stock levels.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">{{ low_stock_products|length }}</h5>
+                <p class="card-text text-muted">Products Below Minimum</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">Quick Action</h5>
+                <a href="{% url 'inventory:stock_movement_add' %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus"></i> Record Stock Movement
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-secondary">Auto-refresh</h5>
+                <p class="card-text text-muted">Page refreshes every 5 minutes</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh every 5 minutes
+setTimeout(function() {
+    location.reload();
+}, 300000); // 5 minutes
+</script>
+{% endblock %}

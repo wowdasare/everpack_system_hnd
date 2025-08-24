@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-boxes"></i> Products
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'inventory:product_add' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> Add Product
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Supplier</th>
+                        <th>Current Stock</th>
+                        <th>Cost Price</th>
+                        <th>Selling Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr {% if product.is_low_stock %}class="table-warning"{% endif %}>
+                        <td><strong>{{ product.sku }}</strong></td>
+                        <td>
+                            <div>
+                                <strong>{{ product.name }}</strong><br>
+                                <small class="text-muted">{{ product.description|truncatechars:50 }}</small>
+                            </div>
+                        </td>
+                        <td>{{ product.category.name }}</td>
+                        <td>{{ product.supplier.name }}</td>
+                        <td>
+                            <span class="badge {% if product.is_low_stock %}bg-warning{% elif product.current_stock == 0 %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ product.current_stock }} {{ product.get_unit_display }}
+                            </span>
+                            {% if product.is_low_stock %}
+                                <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> Low Stock</small>
+                            {% endif %}
+                        </td>
+                        <td>GHS {{ product.cost_price }}</td>
+                        <td>GHS {{ product.selling_price }}</td>
+                        <td>
+                            {% if product.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'inventory:product_detail' product.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'inventory:product_delete' product.pk %}" class="btn btn-outline-danger" title="Delete" onclick="return confirmDelete(event, 'product', '{{ product.name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="bi bi-box-seam fs-1"></i><br>
+                            No products found.<br>
+                            <a href="{% url 'inventory:product_add' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Add Your First Product
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ products|length }}</h5>
+                <p class="card-text text-muted">Total Products</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">
+                    {{ products|length }}  <!-- This should be calculated for low stock -->
+                </h5>
+                <p class="card-text text-muted">Low Stock Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    {% for product in products %}
+                        {% if forloop.first %}GHS {{ product.stock_value|default:"0.00" }}{% endif %}
+                    {% empty %}
+                        GHS 0.00
+                    {% endfor %}
+                </h5>
+                <p class="card-text text-muted">Total Stock Value</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {% regroup products by category as category_list %}
+                    {{ category_list|length }}
+                </h5>
+                <p class="card-text text-muted">Categories</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(event, itemType, itemName) {
+    event.preventDefault();
+    const url = event.currentTarget.href;
+    
+    Swal.fire({
+        title: `Delete ${itemType}?`,
+        text: `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, delete ${itemType}!`,
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal2-popup',
+            title: 'swal2-title',
+            htmlContainer: 'swal2-html-container'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+    
+    return false;
+}
+</script>
+{% endblock %}
