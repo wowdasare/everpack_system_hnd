@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Sale{% else %}New Sale{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-cart-plus"></i> {% if object %}Edit Sale{% else %}Create New Sale{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Sales
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0" style="color: var(--primary-700);">
+                    <i class="bi bi-receipt"></i> Sale Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_customer" class="form-label">Customer <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_customer" name="customer" required>
+                                    <option value="">Select Customer</option>
+                                    {% for customer in form.customer.field.queryset %}
+                                        <option value="{{ customer.pk }}" 
+                                                {% if form.customer.value %}
+                                                    {% if customer.pk == form.customer.value or customer.pk|stringformat:"s" == form.customer.value|stringformat:"s" %}selected{% endif %}
+                                                {% endif %}>
+                                            {{ customer.name }} ({{ customer.get_customer_type_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a customer.</div>
+                                {% if form.customer.errors %}
+                                    <div class="text-danger small">{{ form.customer.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_method" class="form-label">Payment Method</label>
+                                <select class="form-select" id="id_payment_method" name="payment_method">
+                                    {% for value, label in form.payment_method.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.payment_method.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_subtotal" class="form-label">Subtotal (GHS)</label>
+                                <input type="number" class="form-control" id="id_subtotal" name="subtotal" 
+                                       value="{{ form.subtotal.value|default_if_none:'0' }}" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_discount_amount" class="form-label">Discount (GHS)</label>
+                                <input type="number" class="form-control" id="id_discount_amount" name="discount_amount" 
+                                       value="{{ form.discount_amount.value|default_if_none:'0' }}" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_tax_amount" class="form-label">Tax (GHS)</label>
+                                <input type="number" class="form-control" id="id_tax_amount" name="tax_amount" 
+                                       value="{{ form.tax_amount.value|default_if_none:'0' }}" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="id_total_amount" class="form-label">Total (GHS)</label>
+                                <input type="number" class="form-control" id="id_total_amount" name="total_amount" 
+                                       value="{{ form.total_amount.value|default_if_none:'0' }}" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_status" class="form-label">Payment Status</label>
+                                <select class="form-select" id="id_payment_status" name="payment_status">
+                                    {% for value, label in form.payment_status.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.payment_status.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_amount_paid" class="form-label">Amount Paid (GHS)</label>
+                                <input type="number" class="form-control" id="id_amount_paid" name="amount_paid" 
+                                       value="{{ form.amount_paid.value|default_if_none:'0' }}" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="id_notes" name="notes" rows="3"
+                                  placeholder="Sale notes...">{{ form.notes.value|default_if_none:'' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span id="submitText">
+                                <i class="bi bi-check"></i> {% if object %}Update Sale{% else %}Create Sale{% endif %}
+                            </span>
+                            <span id="loadingText" style="display: none;">
+                                <i class="bi bi-arrow-repeat spin"></i> Creating Sale...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0" style="color: var(--primary-700);"><i class="bi bi-info-circle"></i> Instructions</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Step 1:</strong> Create the sale with basic information.<br>
+                    <strong>Step 2:</strong> After creating, add items to this sale.<br>
+                    <strong>Step 3:</strong> Stock will be automatically reduced when items are added.
+                </div>
+                
+                <h6>Payment Methods:</h6>
+                <ul class="list-unstyled small">
+                    <li><i class="bi bi-cash"></i> Cash - Immediate payment</li>
+                    <li><i class="bi bi-phone"></i> Mobile Money - MTN, Vodafone, etc.</li>
+                    <li><i class="bi bi-bank"></i> Bank Transfer - Wire transfer</li>
+                    <li><i class="bi bi-check2"></i> Cheque - Check payment</li>
+                    <li><i class="bi bi-credit-card"></i> Credit - Pay later</li>
+                </ul>
+                
+                <h6>Payment Status:</h6>
+                <ul class="list-unstyled small">
+                    <li><span class="badge bg-success">Paid</span> - Fully paid</li>
+                    <li><span class="badge bg-warning">Pending</span> - Awaiting payment</li>
+                    <li><span class="badge bg-info">Partial</span> - Partially paid</li>
+                    <li><span class="badge bg-danger">Overdue</span> - Payment overdue</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.form-submitting {
+    opacity: 0.7;
+    pointer-events: none;
+}
+</style>
+
+<script>
+// Form validation and submission handling
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                const submitBtn = document.getElementById('submitBtn');
+                const submitText = document.getElementById('submitText');
+                const loadingText = document.getElementById('loadingText');
+                
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    submitText.style.display = 'none';
+                    loadingText.style.display = 'inline-block';
+                    form.classList.add('form-submitting');
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Calculate totals
+document.addEventListener('DOMContentLoaded', function() {
+    const subtotalInput = document.getElementById('id_subtotal');
+    const discountInput = document.getElementById('id_discount_amount');
+    const taxInput = document.getElementById('id_tax_amount');
+    const totalInput = document.getElementById('id_total_amount');
+    
+    function calculateTotal() {
+        const subtotal = parseFloat(subtotalInput.value) || 0;
+        const discount = parseFloat(discountInput.value) || 0;
+        const tax = parseFloat(taxInput.value) || 0;
+        const total = Math.max(0, subtotal - discount + tax);
+        totalInput.value = total.toFixed(2);
+        
+        // Add smooth animation for total update
+        totalInput.style.transform = 'scale(1.05)';
+        totalInput.style.transition = 'transform 0.2s ease';
+        setTimeout(() => {
+            totalInput.style.transform = 'scale(1)';
+        }, 200);
+    }
+    
+    discountInput.addEventListener('input', calculateTotal);
+    taxInput.addEventListener('input', calculateTotal);
+    subtotalInput.addEventListener('input', calculateTotal);
+    
+    // Initialize calculation on page load
+    calculateTotal();
+});
+</script>
+{% endblock %}

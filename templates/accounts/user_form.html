@@ -16,7 +16,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-6">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary">
                 <h5 class="mb-0">
                     <i class="bi bi-person-badge"></i> 
                     {% if object %}Edit User: {{ object.username }}{% else %}User Information{% endif %}
@@ -79,6 +79,23 @@
                             <div class="text-danger small">{{ form.password2.errors.0 }}</div>
                         {% endif %}
                         <small class="form-text text-muted">{{ form.password2.help_text }}</small>
+                    </div>
+                    {% endif %}
+
+                    {% if not object %}
+                    <!-- User Type field only for new users -->
+                    <div class="mb-3">
+                        <label for="id_user_type" class="form-label">User Role <span class="text-danger">*</span></label>
+                        <select class="form-select" id="id_user_type" name="user_type" required>
+                            <option value="">Select a role...</option>
+                            <option value="admin" {% if form.user_type.value == 'admin' %}selected{% endif %}>Administrator</option>
+                            <option value="manager" {% if form.user_type.value == 'manager' %}selected{% endif %}>Manager</option>
+                            <option value="sales_rep" {% if form.user_type.value == 'sales_rep' %}selected{% endif %}>Sales Representative</option>
+                        </select>
+                        {% if form.user_type.errors %}
+                            <div class="text-danger small">{{ form.user_type.errors.0 }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ form.user_type.help_text }}</small>
                     </div>
                     {% endif %}
 

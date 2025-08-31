@@ -18,6 +18,9 @@ class Supplier(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('inventory:supplier_detail', kwargs={'pk': self.pk})
+
     class Meta:
         ordering = ['name']
 
@@ -29,6 +32,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('inventory:category_list')
 
     class Meta:
         ordering = ['name']
@@ -88,6 +94,41 @@ class Product(models.Model):
         if self.cost_price > 0:
             return ((self.selling_price - self.cost_price) / self.cost_price) * 100
         return 0
+    
+    def check_stock_levels(self):
+        """Check stock levels and create alerts if necessary"""
+        current_stock = self.current_stock
+        
+        if current_stock <= self.minimum_stock_level:
+            if current_stock == 0:
+                alert_type = 'OUT_OF_STOCK'
+                message = f'{self.name} is out of stock. Current stock: {current_stock}, Minimum required: {self.minimum_stock_level}'
+            else:
+                alert_type = 'LOW_STOCK'
+                message = f'{self.name} is running low on stock. Current stock: {current_stock}, Minimum required: {self.minimum_stock_level}'
+            
+            # Check if alert already exists
+            existing_alert = self.alerts.filter(
+                alert_type=alert_type,
+                is_resolved=False
+            ).first()
+            
+            if not existing_alert:
+                from django.utils import timezone as django_timezone
+                self.alerts.create(
+                    alert_type=alert_type,
+                    message=message
+                )
+        else:
+            # Resolve existing low stock alerts if stock is now sufficient
+            from django.utils import timezone as django_timezone
+            self.alerts.filter(
+                alert_type__in=['LOW_STOCK', 'OUT_OF_STOCK'],
+                is_resolved=False
+            ).update(
+                is_resolved=True,
+                resolved_at=django_timezone.now()
+            )
 
     class Meta:
         ordering = ['name']
@@ -118,6 +159,11 @@ class StockMovement(models.Model):
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Check stock levels after movement
+        self.product.check_stock_levels()
 
     def __str__(self):
         return f"{self.product.name} - {self.movement_type} - {self.quantity}"

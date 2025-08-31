@@ -1,3 +1,4 @@
+{% load role_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -508,11 +509,17 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    {% can_access_app user 'dashboard' as can_dashboard %}
+                    {% if can_dashboard %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dashboard:home' %}">
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
+                    {% endif %}
+                    
+                    {% can_access_app user 'inventory' as can_inventory %}
+                    {% if can_inventory %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="inventoryDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-boxes"></i> Inventory
@@ -522,10 +529,17 @@
                             <li><a class="dropdown-item" href="{% url 'inventory:supplier_list' %}">Suppliers</a></li>
                             <li><a class="dropdown-item" href="{% url 'inventory:category_list' %}">Categories</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            {% can_perform_action user 'delete' as can_manage_stock %}
+                            {% if can_manage_stock %}
                             <li><a class="dropdown-item" href="{% url 'inventory:stock_movement_list' %}">Stock Movements</a></li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{% url 'inventory:low_stock' %}">Low Stock Alert</a></li>
                         </ul>
                     </li>
+                    {% endif %}
+                    
+                    {% can_access_app user 'sales' as can_sales %}
+                    {% if can_sales %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-cart"></i> Sales
@@ -534,10 +548,17 @@
                             <li><a class="dropdown-item" href="{% url 'sales:sale_list' %}">Sales</a></li>
                             <li><a class="dropdown-item" href="{% url 'sales:sale_create' %}">New Sale</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'sales:bulk_order_list' %}"><i class="bi bi-boxes"></i> Bulk Orders</a></li>
+                            <li><a class="dropdown-item" href="{% url 'sales:bulk_order_add' %}"><i class="bi bi-plus-circle"></i> New Bulk Order</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'sales:customer_list' %}">Customers</a></li>
                             <li><a class="dropdown-item" href="{% url 'sales:payment_list' %}">Payments</a></li>
                         </ul>
                     </li>
+                    {% endif %}
+                    
+                    {% can_access_app user 'reports' as can_reports %}
+                    {% if can_reports %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-graph-up"></i> Reports
@@ -545,10 +566,10 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'reports:sales_report' %}">Sales Reports</a></li>
                             <li><a class="dropdown-item" href="{% url 'reports:inventory_report' %}">Inventory Reports</a></li>
-                            <li><a class="dropdown-item" href="{% url 'reports:financial_report' %}">Financial Reports</a></li>
                             <li><a class="dropdown-item" href="{% url 'reports:profit_loss_report' %}">Profit & Loss</a></li>
                         </ul>
                     </li>
+                    {% endif %}
                 </ul>
                 
                 {% if user.is_authenticated %}

@@ -79,11 +79,7 @@
     <div class="col-md-4">
         <div class="card text-center">
             <div class="card-body">
-                <h5 class="card-title">
-                    {% for category in categories %}
-                        {{ category.products.count|add:forloop.counter0 }}
-                    {% empty %}0{% endfor %}
-                </h5>
+                <h5 class="card-title">{{ total_products|default:0 }}</h5>
                 <p class="card-text text-muted">Products Categorized</p>
             </div>
         </div>
@@ -91,11 +87,7 @@
     <div class="col-md-4">
         <div class="card text-center">
             <div class="card-body">
-                <h5 class="card-title">
-                    {% for category in categories %}
-                        {% if forloop.first %}{{ category.products.count }}{% endif %}
-                    {% empty %}0{% endfor %}
-                </h5>
+                <h5 class="card-title">{{ top_category_count|default:0 }}</h5>
                 <p class="card-text text-muted">Products in Top Category</p>
             </div>
         </div>

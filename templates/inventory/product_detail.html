@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load role_tags %}
 
 {% block title %}{{ product.name }} - Product Details{% endblock %}
 
@@ -11,12 +12,18 @@
         <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Products
         </a>
+        {% can_perform_action user 'change' as can_edit %}
+        {% if can_edit %}
         <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-warning">
             <i class="bi bi-pencil"></i> Edit
         </a>
+        {% endif %}
+        {% can_perform_action user 'delete' as can_manage_stock %}
+        {% if can_manage_stock %}
         <a href="{% url 'inventory:stock_movement_add' %}" class="btn btn-success">
             <i class="bi bi-plus"></i> Stock Movement
         </a>
+        {% endif %}
     </div>
 {% endblock %}
 
@@ -25,7 +32,7 @@
     <!-- Product Information -->
     <div class="col-lg-8">
         <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Product Information</h5>
             </div>
             <div class="card-body">
@@ -111,7 +118,7 @@
     <!-- Stock Information -->
     <div class="col-lg-4">
         <div class="card shadow mb-4">
-            <div class="card-header bg-info text-white">
+            <div class="card-header bg-info">
                 <h6 class="mb-0"><i class="bi bi-graph-up"></i> Stock Information</h6>
             </div>
             <div class="card-body text-center">
@@ -158,12 +165,18 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
+                    {% can_perform_action user 'delete' as can_manage_stock %}
+                    {% if can_manage_stock %}
                     <a href="{% url 'inventory:stock_movement_add' %}" class="btn btn-success btn-sm">
                         <i class="bi bi-plus-circle"></i> Add Stock
                     </a>
+                    {% endif %}
+                    {% can_perform_action user 'change' as can_edit %}
+                    {% if can_edit %}
                     <a href="{% url 'inventory:product_edit' product.pk %}" class="btn btn-warning btn-sm">
                         <i class="bi bi-pencil"></i> Edit Product
                     </a>
+                    {% endif %}
                     <button class="btn btn-info btn-sm" onclick="printProduct()">
                         <i class="bi bi-printer"></i> Print Label
                     </button>
@@ -173,7 +186,9 @@
     </div>
 </div>
 
-<!-- Recent Stock Movements -->
+<!-- Recent Stock Movements (Only for inventory managers) -->
+{% can_perform_action user 'delete' as can_manage_stock %}
+{% if can_manage_stock %}
 <div class="row mt-4">
     <div class="col-12">
         <div class="card shadow">
@@ -228,6 +243,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

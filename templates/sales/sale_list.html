@@ -184,6 +184,9 @@
                                 <a href="{% url 'sales:invoice_pdf' sale.pk %}" class="btn btn-outline-success" title="Print Invoice">
                                     <i class="bi bi-printer"></i>
                                 </a>
+                                <a href="{% url 'sales:receipt_pdf' sale.pk %}" class="btn btn-outline-dark" title="Print Receipt">
+                                    <i class="bi bi-receipt"></i>
+                                </a>
                                 {% if sale.payment_status != 'PAID' %}
                                 <a href="{% url 'sales:payment_add' sale.pk %}" class="btn btn-outline-info" title="Add Payment">
                                     <i class="bi bi-credit-card"></i>
@@ -231,6 +234,22 @@ function filterTable() {
     const table = document.getElementById('salesTable');
     const rows = table.getElementsByTagName('tr');
 
+    // Create mapping objects for display text to database values
+    const statusMapping = {
+        'Paid': 'PAID',
+        'Pending': 'PENDING', 
+        'Partial': 'PARTIAL',
+        'Overdue': 'OVERDUE'
+    };
+    
+    const methodMapping = {
+        'Cash': 'CASH',
+        'Mobile Money': 'MOBILE_MONEY',
+        'Bank Transfer': 'BANK_TRANSFER',
+        'Cheque': 'CHEQUE',
+        'Credit': 'CREDIT'
+    };
+
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         const cells = row.getElementsByTagName('td');
@@ -239,12 +258,16 @@ function filterTable() {
         
         const invoice = cells[0].textContent.toLowerCase();
         const customer = cells[1].textContent.toLowerCase();
-        const status = cells[6].textContent.trim();
-        const method = cells[5].textContent.trim();
+        const statusText = cells[6].textContent.trim();
+        const methodText = cells[5].textContent.trim();
+        
+        // Convert display text to database values for comparison
+        const statusValue = statusMapping[statusText] || statusText;
+        const methodValue = methodMapping[methodText] || methodText;
         
         const matchesSearch = invoice.includes(searchInput) || customer.includes(searchInput);
-        const matchesStatus = !statusFilter || status.includes(statusFilter);
-        const matchesMethod = !methodFilter || method.includes(methodFilter);
+        const matchesStatus = !statusFilter || statusValue === statusFilter;
+        const matchesMethod = !methodFilter || methodValue === methodFilter;
         
         if (matchesSearch && matchesStatus && matchesMethod) {
             row.style.display = '';

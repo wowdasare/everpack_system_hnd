@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Bulk Order{% else %}New Bulk Order{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-boxes"></i> {% if object %}Edit Bulk Order{% else %}Create New Bulk Order{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:bulk_order_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Bulk Orders
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Bulk Order Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_customer" class="form-label">Customer <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_customer" name="customer" required>
+                                    <option value="">Select Customer</option>
+                                    {% for customer in form.customer.field.queryset %}
+                                        <option value="{{ customer.pk }}" 
+                                                {% if form.customer.value %}
+                                                    {% if customer.pk == form.customer.value or customer.pk|stringformat:"s" == form.customer.value|stringformat:"s" %}selected{% endif %}
+                                                {% endif %}>
+                                            {{ customer.name }} ({{ customer.get_customer_type_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a customer.</div>
+                                {% if form.customer.errors %}
+                                    <div class="text-danger small">{{ form.customer.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if object %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_status" class="form-label">Status</label>
+                                <select class="form-select" id="id_status" name="status">
+                                    {% for value, label in form.status.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.status.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="id_notes" name="notes" rows="4"
+                                  placeholder="Notes about this bulk order...">{{ form.notes.value|default_if_none:'' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'sales:bulk_order_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {% if object %}Update Bulk Order{% else %}Create Bulk Order{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> About Bulk Orders</h6>
+            </div>
+            <div class="card-body">
+                <h6>Bulk Order Process:</h6>
+                <ol class="list-unstyled">
+                    <li><i class="bi bi-1-circle text-primary"></i> Create bulk order</li>
+                    <li><i class="bi bi-2-circle text-info"></i> Add multiple products</li>
+                    <li><i class="bi bi-3-circle text-warning"></i> Submit for processing</li>
+                    <li><i class="bi bi-4-circle text-success"></i> Convert to actual sale</li>
+                </ol>
+                
+                <hr>
+                
+                <h6>Status Meanings:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-secondary">Draft</span> - Being prepared</li>
+                    <li><span class="badge bg-primary">Submitted</span> - Ready for processing</li>
+                    <li><span class="badge bg-warning text-dark">Processing</span> - Being prepared</li>
+                    <li><span class="badge bg-success">Completed</span> - Converted to sale</li>
+                    <li><span class="badge bg-danger">Cancelled</span> - Cancelled order</li>
+                </ul>
+                
+                {% if object %}
+                <hr>
+                <div class="text-center">
+                    <strong>Current Status:</strong><br>
+                    <span class="badge 
+                        {% if object.status == 'COMPLETED' %}bg-success
+                        {% elif object.status == 'SUBMITTED' %}bg-primary
+                        {% elif object.status == 'PROCESSING' %}bg-warning text-dark
+                        {% elif object.status == 'DRAFT' %}bg-secondary
+                        {% else %}bg-danger{% endif %} fs-6">
+                        {{ object.get_status_display }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

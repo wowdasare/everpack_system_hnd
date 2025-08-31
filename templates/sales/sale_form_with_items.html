@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Sale{% else %}New Sale{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-cart-plus"></i> {% if object %}Edit Sale{% else %}Create New Sale{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Sales
+    </a>
+{% endblock %}
+
+{% block content %}
+<form method="post" class="needs-validation" novalidate id="sale-form">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Sale Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0" style="color: var(--primary-700);">
+                        <i class="bi bi-receipt"></i> Sale Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_customer" class="form-label">Customer <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_customer" name="customer" required>
+                                    <option value="">Select Customer</option>
+                                    {% for customer in form.customer.field.queryset %}
+                                        <option value="{{ customer.pk }}" 
+                                                {% if form.customer.value %}
+                                                    {% if customer.pk == form.customer.value or customer.pk|stringformat:"s" == form.customer.value|stringformat:"s" %}selected{% endif %}
+                                                {% endif %}>
+                                            {{ customer.name }} ({{ customer.get_customer_type_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a customer.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_method" class="form-label">Payment Method</label>
+                                <select class="form-select" id="id_payment_method" name="payment_method">
+                                    {% for value, label in form.payment_method.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.payment_method.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_status" class="form-label">Payment Status</label>
+                                <select class="form-select" id="id_payment_status" name="payment_status">
+                                    {% for value, label in form.payment_status.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.payment_status.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="id_notes" name="notes" rows="2"
+                                          placeholder="Sale notes...">{{ form.notes.value|default_if_none:'' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sale Items -->
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" style="color: var(--primary-700);">
+                        <i class="bi bi-list"></i> Sale Items
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-success" onclick="addItem()">
+                        <i class="bi bi-plus"></i> Add Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="items-container">
+                        <!-- Items will be added here dynamically -->
+                    </div>
+                    
+                    <div id="no-items-message" class="text-center text-muted py-4">
+                        <i class="bi bi-cart-x fs-1"></i>
+                        <p>No items added yet. Click "Add Item" to start.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0" style="color: var(--primary-700);"><i class="bi bi-calculator"></i> Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td>Subtotal:</td>
+                            <td class="text-end"><strong>GHS <span id="subtotal-display">0.00</span></strong></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label for="discount-amount">Discount:</label>
+                                <input type="number" class="form-control form-control-sm" id="discount-amount" 
+                                       name="discount_amount" value="0" min="0" step="0.01">
+                            </td>
+                            <td class="text-end">-GHS <span id="discount-display">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label for="tax-amount">Tax:</label>
+                                <input type="number" class="form-control form-control-sm" id="tax-amount" 
+                                       name="tax_amount" value="0" min="0" step="0.01">
+                            </td>
+                            <td class="text-end">+GHS <span id="tax-display">0.00</span></td>
+                        </tr>
+                        <tr class="border-top">
+                            <td><strong>Total Amount:</strong></td>
+                            <td class="text-end"><strong class="text-success fs-5">GHS <span id="total-display">0.00</span></strong></td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Hidden fields for form submission -->
+                    <input type="hidden" name="subtotal" id="subtotal-input" value="0">
+                    <input type="hidden" name="total_amount" id="total-input" value="0">
+                    <input type="hidden" name="amount_paid" id="amount-paid-input" value="0">
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                            <i class="bi bi-check"></i> {% if object %}Update Sale{% else %}Create Sale{% endif %}
+                        </button>
+                        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let itemCount = 0;
+const products = [
+    {% for product in products %}
+    {
+        id: {{ product.pk }},
+        name: "{{ product.name|escapejs }}",
+        sku: "{{ product.sku|escapejs }}",
+        price: {{ product.selling_price }},
+        cost: {{ product.cost_price }},
+        stock: {{ product.current_stock }},
+        unit: "{{ product.get_unit_display|escapejs }}"
+    },
+    {% endfor %}
+];
+
+function addItem() {
+    itemCount++;
+    const container = document.getElementById('items-container');
+    const noItemsMsg = document.getElementById('no-items-message');
+    
+    const itemHtml = `
+        <div class="item-row border rounded p-3 mb-3" id="item-${itemCount}">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Product</label>
+                    <select class="form-select product-select" name="items[${itemCount}][product]" data-item="${itemCount}" required>
+                        <option value="">Select Product</option>
+                        ${products.map(p => `<option value="${p.id}" data-price="${p.price}" data-cost="${p.cost}" data-stock="${p.stock}" data-unit="${p.unit}">${p.name} (${p.sku}) - Stock: ${p.stock}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Qty</label>
+                    <input type="number" class="form-control quantity-input" name="items[${itemCount}][quantity]" 
+                           data-item="${itemCount}" min="1" required>
+                    <small class="text-muted">Available: <span class="available-stock-${itemCount}">-</span></small>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Price</label>
+                    <input type="number" class="form-control price-input" name="items[${itemCount}][unit_price]" 
+                           data-item="${itemCount}" step="0.01" min="0" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Total</label>
+                    <input type="text" class="form-control total-input" data-item="${itemCount}" readonly>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${itemCount})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', itemHtml);
+    noItemsMsg.style.display = 'none';
+    
+    // Attach events to new item
+    attachItemEvents(itemCount);
+}
+
+function attachItemEvents(itemId) {
+    const productSelect = document.querySelector(`[name="items[${itemId}][product]"]`);
+    const quantityInput = document.querySelector(`[name="items[${itemId}][quantity]"]`);
+    const priceInput = document.querySelector(`[name="items[${itemId}][unit_price]"]`);
+    
+    productSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            priceInput.value = selectedOption.dataset.price;
+            document.querySelector(`.available-stock-${itemId}`).textContent = 
+                selectedOption.dataset.stock + ' ' + selectedOption.dataset.unit;
+        }
+        calculateItemTotal(itemId);
+        calculateOrderTotal();
+    });
+    
+    quantityInput.addEventListener('input', function() {
+        calculateItemTotal(itemId);
+        calculateOrderTotal();
+    });
+    
+    priceInput.addEventListener('input', function() {
+        calculateItemTotal(itemId);
+        calculateOrderTotal();
+    });
+}
+
+function calculateItemTotal(itemId) {
+    const quantity = parseFloat(document.querySelector(`[name="items[${itemId}][quantity]"]`).value) || 0;
+    const price = parseFloat(document.querySelector(`[name="items[${itemId}][unit_price]"]`).value) || 0;
+    const total = quantity * price;
+    
+    document.querySelector(`[data-item="${itemId}"].total-input`).value = total.toFixed(2);
+}
+
+function removeItem(itemId) {
+    document.getElementById(`item-${itemId}`).remove();
+    calculateOrderTotal();
+    
+    // Check if no items left
+    const container = document.getElementById('items-container');
+    if (container.children.length === 0) {
+        document.getElementById('no-items-message').style.display = 'block';
+    }
+}
+
+function calculateOrderTotal() {
+    let subtotal = 0;
+    document.querySelectorAll('.total-input').forEach(input => {
+        subtotal += parseFloat(input.value) || 0;
+    });
+    
+    const discount = parseFloat(document.getElementById('discount-amount').value) || 0;
+    const tax = parseFloat(document.getElementById('tax-amount').value) || 0;
+    const total = Math.max(0, subtotal - discount + tax);
+    
+    document.getElementById('subtotal-display').textContent = subtotal.toFixed(2);
+    document.getElementById('discount-display').textContent = discount.toFixed(2);
+    document.getElementById('tax-display').textContent = tax.toFixed(2);
+    document.getElementById('total-display').textContent = total.toFixed(2);
+    
+    // Update hidden form fields
+    document.getElementById('subtotal-input').value = subtotal.toFixed(2);
+    document.getElementById('total-input').value = total.toFixed(2);
+    document.getElementById('amount-paid-input').value = total.toFixed(2); // Default to full payment
+}
+
+// Event listeners for discount and tax
+document.getElementById('discount-amount').addEventListener('input', calculateOrderTotal);
+document.getElementById('tax-amount').addEventListener('input', calculateOrderTotal);
+
+// Add first item by default
+document.addEventListener('DOMContentLoaded', function() {
+    addItem();
+});
+
+// Form submission handling
+document.getElementById('sale-form').addEventListener('submit', function(e) {
+    console.log('Form submitted');
+    const itemRows = document.querySelectorAll('.item-row');
+    console.log('Item rows found:', itemRows.length);
+    
+    if (itemRows.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one item to the sale.');
+        return;
+    }
+    
+    // Validate stock for each item
+    let hasErrors = false;
+    itemRows.forEach((row, index) => {
+        const productSelect = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        
+        if (productSelect && productSelect.value && quantityInput && quantityInput.value) {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const availableStock = parseInt(selectedOption.dataset.stock) || 0;
+            const requestedQty = parseInt(quantityInput.value) || 0;
+            
+            if (requestedQty > availableStock) {
+                quantityInput.setCustomValidity('Quantity exceeds available stock');
+                hasErrors = true;
+            } else {
+                quantityInput.setCustomValidity('');
+            }
+        }
+    });
+    
+    if (hasErrors) {
+        e.preventDefault();
+        alert('Please correct quantity errors (check stock availability).');
+        return;
+    }
+    
+    console.log('Form validation passed, submitting...');
+});
+</script>
+{% endblock %}

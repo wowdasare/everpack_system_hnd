@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Sale{% else %}New Sale{% endif %} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-cart-plus"></i> {% if object %}Edit Sale{% else %}Create New Sale{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Sales
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt"></i> Complete Sale Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="saleForm" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Customer and Payment Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_customer" class="form-label">Customer <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_customer" name="customer" required>
+                                    <option value="">Select Customer</option>
+                                    {% for customer in customers %}
+                                        <option value="{{ customer.pk }}">
+                                            {{ customer.name }} ({{ customer.get_customer_type_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a customer.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_payment_method" class="form-label">Payment Method</label>
+                                <select class="form-select" id="id_payment_method" name="payment_method">
+                                    <option value="CASH">Cash</option>
+                                    <option value="MOBILE_MONEY">Mobile Money</option>
+                                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                                    <option value="CHEQUE">Cheque</option>
+                                    <option value="CREDIT">Credit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_payment_status" class="form-label">Payment Status</label>
+                                <select class="form-select" id="id_payment_status" name="payment_status">
+                                    <option value="PAID">Paid</option>
+                                    <option value="PENDING">Pending</option>
+                                    <option value="PARTIAL">Partial</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="bi bi-box-seam"></i> Products</h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="productsTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 35%">Product</th>
+                                            <th style="width: 10%">Stock</th>
+                                            <th style="width: 15%">Quantity</th>
+                                            <th style="width: 15%">Unit Price (GHS)</th>
+                                            <th style="width: 15%">Total (GHS)</th>
+                                            <th style="width: 10%">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productRows">
+                                        <tr class="product-row">
+                                            <td>
+                                                <select class="form-select product-select" name="items[0][product]">
+                                                    <option value="">Select Product</option>
+                                                    {% for product in products %}
+                                                        <option value="{{ product.pk }}" 
+                                                                data-price="{{ product.selling_price }}" 
+                                                                data-stock="{{ product.current_stock }}"
+                                                                data-unit="{{ product.get_unit_display }}">
+                                                            {{ product.name }} - {{ product.sku }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <span class="stock-info text-muted">-</span>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control quantity-input" 
+                                                       name="items[0][quantity]" min="1" step="1" placeholder="Qty">
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control price-input" 
+                                                       name="items[0][unit_price]" min="0" step="0.01" placeholder="Price">
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control total-input" 
+                                                       readonly placeholder="Total">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm remove-row">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" id="addProductRow">
+                                <i class="bi bi-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Totals Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-6">Subtotal:</div>
+                                        <div class="col-6 text-end">
+                                            GHS <span id="subtotalDisplay">0.00</span>
+                                            <input type="hidden" name="subtotal" id="subtotalInput" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6">Discount:</div>
+                                        <div class="col-6">
+                                            <input type="number" class="form-control form-control-sm" 
+                                                   name="discount_amount" id="discountInput" 
+                                                   min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6">Tax:</div>
+                                        <div class="col-6">
+                                            <input type="number" class="form-control form-control-sm" 
+                                                   name="tax_amount" id="taxInput" 
+                                                   min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Total:</strong></div>
+                                        <div class="col-6 text-end">
+                                            <strong>GHS <span id="totalDisplay">0.00</span></strong>
+                                            <input type="hidden" name="total_amount" id="totalInput" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">Amount Paid:</div>
+                                        <div class="col-6">
+                                            <input type="number" class="form-control form-control-sm" 
+                                                   name="amount_paid" id="amountPaidInput" 
+                                                   min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="id_notes" name="notes" rows="3"
+                                          placeholder="Additional notes for this sale..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span id="submitText">
+                                <i class="bi bi-check"></i> Create Sale
+                            </span>
+                            <span id="loadingText" style="display: none;">
+                                <i class="bi bi-arrow-repeat spin"></i> Creating Sale...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.form-submitting {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.stock-low {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+.stock-ok {
+    color: #28a745 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let rowCount = 1;
+
+    // Add new product row
+    document.getElementById('addProductRow').addEventListener('click', function() {
+        const tbody = document.getElementById('productRows');
+        const newRow = createProductRow(rowCount);
+        tbody.appendChild(newRow);
+        rowCount++;
+    });
+
+    // Create product row
+    function createProductRow(index) {
+        const row = document.createElement('tr');
+        row.className = 'product-row';
+        
+        // Create the product options HTML
+        const productOptions = document.querySelector('.product-select').innerHTML;
+        
+        row.innerHTML = `
+            <td>
+                <select class="form-select product-select" name="items[${index}][product]">
+                    ${productOptions}
+                </select>
+            </td>
+            <td>
+                <span class="stock-info text-muted">-</span>
+            </td>
+            <td>
+                <input type="number" class="form-control quantity-input" 
+                       name="items[${index}][quantity]" min="1" step="1" placeholder="Qty">
+            </td>
+            <td>
+                <input type="number" class="form-control price-input" 
+                       name="items[${index}][unit_price]" min="0" step="0.01" placeholder="Price">
+            </td>
+            <td>
+                <input type="number" class="form-control total-input" 
+                       readonly placeholder="Total">
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm remove-row">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+
+        // Add event listeners
+        setupRowEventListeners(row);
+        return row;
+    }
+
+    // Setup event listeners for a row
+    function setupRowEventListeners(row) {
+        const productSelect = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('.price-input');
+        const totalInput = row.querySelector('.total-input');
+        const stockInfo = row.querySelector('.stock-info');
+        const removeBtn = row.querySelector('.remove-row');
+
+        // Product selection
+        productSelect.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            if (option.value) {
+                const price = parseFloat(option.dataset.price);
+                const stock = parseInt(option.dataset.stock);
+                const unit = option.dataset.unit;
+
+                priceInput.value = price.toFixed(2);
+                stockInfo.textContent = `${stock} ${unit}`;
+                stockInfo.className = stock < 10 ? 'stock-info stock-low' : 'stock-info stock-ok';
+                
+                if (quantityInput.value) {
+                    calculateRowTotal(row);
+                }
+            } else {
+                priceInput.value = '';
+                stockInfo.textContent = '-';
+                stockInfo.className = 'stock-info text-muted';
+                totalInput.value = '';
+                calculateGrandTotal();
+            }
+        });
+
+        // Quantity and price changes
+        quantityInput.addEventListener('input', () => calculateRowTotal(row));
+        priceInput.addEventListener('input', () => calculateRowTotal(row));
+
+        // Remove row
+        removeBtn.addEventListener('click', function() {
+            if (document.querySelectorAll('.product-row').length > 1) {
+                row.remove();
+                calculateGrandTotal();
+            }
+        });
+    }
+
+    // Calculate row total
+    function calculateRowTotal(row) {
+        const quantityInput = row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('.price-input');
+        const totalInput = row.querySelector('.total-input');
+
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const total = quantity * price;
+
+        totalInput.value = total.toFixed(2);
+        calculateGrandTotal();
+    }
+
+    // Calculate grand total
+    function calculateGrandTotal() {
+        let subtotal = 0;
+        document.querySelectorAll('.total-input').forEach(input => {
+            subtotal += parseFloat(input.value) || 0;
+        });
+
+        const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+        const tax = parseFloat(document.getElementById('taxInput').value) || 0;
+        const total = Math.max(0, subtotal - discount + tax);
+
+        document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
+        document.getElementById('subtotalInput').value = subtotal.toFixed(2);
+        document.getElementById('totalDisplay').textContent = total.toFixed(2);
+        document.getElementById('totalInput').value = total.toFixed(2);
+    }
+
+    // Setup existing row listeners
+    document.querySelectorAll('.product-row').forEach(row => {
+        setupRowEventListeners(row);
+    });
+
+    // Discount and tax changes
+    document.getElementById('discountInput').addEventListener('input', calculateGrandTotal);
+    document.getElementById('taxInput').addEventListener('input', calculateGrandTotal);
+
+    // Form submission
+    document.getElementById('saleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate at least one product is selected
+        const productSelects = document.querySelectorAll('.product-select');
+        let hasProducts = false;
+        
+        productSelects.forEach(select => {
+            if (select.value) hasProducts = true;
+        });
+
+        if (!hasProducts) {
+            alert('Please select at least one product.');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingText = document.getElementById('loadingText');
+        
+        submitBtn.disabled = true;
+        submitText.style.display = 'none';
+        loadingText.style.display = 'inline-block';
+
+        // Submit form
+        this.submit();
+    });
+});
+</script>
+{% endblock %}

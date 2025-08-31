@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Item to {{ sale.invoice_number }} - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-plus-circle"></i> Add Item to Sale {{ sale.invoice_number }}
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Sale
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Add Item to Sale
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_product" class="form-label">Product <span class="text-danger">*</span></label>
+                                <select class="form-select" id="id_product" name="product" required>
+                                    <option value="">Select Product</option>
+                                    {% for product in products %}
+                                        <option value="{{ product.pk }}" 
+                                                data-price="{{ product.selling_price }}"
+                                                data-cost="{{ product.cost_price }}"
+                                                data-stock="{{ product.current_stock }}"
+                                                data-unit="{{ product.get_unit_display }}">
+                                            {{ product.name }} ({{ product.sku }}) - Stock: {{ product.current_stock }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a product.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="id_quantity" name="quantity" 
+                                       min="1" required>
+                                <div class="invalid-feedback">Please enter quantity.</div>
+                                <small class="form-text text-muted">Available: <span id="available_stock">-</span></small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="id_unit_price" class="form-label">Unit Price (GHS) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="id_unit_price" name="unit_price" 
+                                       step="0.01" min="0" required>
+                                <div class="invalid-feedback">Please enter unit price.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Total Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">GHS</span>
+                                    <input type="text" class="form-control" id="total_price" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Profit (Est.)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">GHS</span>
+                                    <input type="text" class="form-control" id="estimated_profit" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> Add Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Sale Summary</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Invoice:</strong></td>
+                        <td>{{ sale.invoice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Customer:</strong></td>
+                        <td>{{ sale.customer.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current Total:</strong></td>
+                        <td><strong class="text-success">GHS {{ sale.total_amount }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Items:</strong></td>
+                        <td>{{ sale.total_items }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-box"></i> Product Info</h6>
+            </div>
+            <div class="card-body">
+                <div id="product_info" style="display: none;">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td>Current Stock:</td>
+                            <td><span id="product_stock" class="badge bg-info">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>Unit:</td>
+                            <td><span id="product_unit">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>Cost Price:</td>
+                            <td>GHS <span id="product_cost">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>Selling Price:</td>
+                            <td>GHS <span id="product_price">-</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="no_product_selected" class="text-muted text-center">
+                    <i class="bi bi-box"></i><br>
+                    Select a product to see details
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('id_product');
+    const quantityInput = document.getElementById('id_quantity');
+    const unitPriceInput = document.getElementById('id_unit_price');
+    const totalPriceInput = document.getElementById('total_price');
+    const estimatedProfitInput = document.getElementById('estimated_profit');
+    
+    const availableStockSpan = document.getElementById('available_stock');
+    const productInfoDiv = document.getElementById('product_info');
+    const noProductDiv = document.getElementById('no_product_selected');
+    
+    function updateProductInfo() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const cost = parseFloat(selectedOption.dataset.cost) || 0;
+            const stock = parseInt(selectedOption.dataset.stock) || 0;
+            const unit = selectedOption.dataset.unit || '';
+            
+            // Update price
+            unitPriceInput.value = price.toFixed(2);
+            
+            // Update product info panel
+            document.getElementById('product_stock').textContent = stock;
+            document.getElementById('product_unit').textContent = unit;
+            document.getElementById('product_cost').textContent = cost.toFixed(2);
+            document.getElementById('product_price').textContent = price.toFixed(2);
+            
+            // Update available stock
+            availableStockSpan.textContent = stock + ' ' + unit;
+            
+            // Show product info
+            productInfoDiv.style.display = 'block';
+            noProductDiv.style.display = 'none';
+            
+            // Update calculations
+            updateCalculations();
+        } else {
+            unitPriceInput.value = '';
+            availableStockSpan.textContent = '-';
+            productInfoDiv.style.display = 'none';
+            noProductDiv.style.display = 'block';
+            updateCalculations();
+        }
+    }
+    
+    function updateCalculations() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const unitPrice = parseFloat(unitPriceInput.value) || 0;
+        const total = quantity * unitPrice;
+        
+        totalPriceInput.value = total.toFixed(2);
+        
+        // Calculate estimated profit
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        if (selectedOption.value) {
+            const cost = parseFloat(selectedOption.dataset.cost) || 0;
+            const profit = (unitPrice - cost) * quantity;
+            estimatedProfitInput.value = profit.toFixed(2);
+            
+            // Color code profit
+            if (profit > 0) {
+                estimatedProfitInput.className = 'form-control text-success';
+            } else if (profit === 0) {
+                estimatedProfitInput.className = 'form-control text-warning';
+            } else {
+                estimatedProfitInput.className = 'form-control text-danger';
+            }
+        }
+    }
+    
+    // Event listeners
+    productSelect.addEventListener('change', updateProductInfo);
+    quantityInput.addEventListener('input', updateCalculations);
+    unitPriceInput.addEventListener('input', updateCalculations);
+    
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    const selectedOption = productSelect.options[productSelect.selectedIndex];
+                    const stock = parseInt(selectedOption.dataset.stock) || 0;
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    
+                    // Check stock availability
+                    if (quantity > stock) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        quantityInput.setCustomValidity('Quantity exceeds available stock');
+                    } else {
+                        quantityInput.setCustomValidity('');
+                    }
+                    
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+});
+</script>
+{% endblock %}

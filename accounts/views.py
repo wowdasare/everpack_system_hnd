@@ -1,31 +1,29 @@
 from django.shortcuts import render, redirect
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.contrib.auth.views import PasswordChangeView
-from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
+from django.contrib.auth.views import PasswordChangeView, LoginView
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django import forms
 from django.shortcuts import get_object_or_404
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from .templatetags.role_tags import get_user_role
+from django.http import Http404
 
 
-class CustomUserCreationForm(UserCreationForm):
-    """Custom user creation form with additional fields"""
-    first_name = forms.CharField(max_length=30, required=False, help_text='Optional.')
-    last_name = forms.CharField(max_length=30, required=False, help_text='Optional.')
-    email = forms.EmailField(max_length=254, required=False, help_text='Optional.')
-    is_active = forms.BooleanField(required=False, initial=True, help_text='User can log in when active.')
+class CustomLoginView(LoginView):
+    """Custom login view with password confirmation"""
+    form_class = CustomAuthenticationForm
+    template_name = 'accounts/login.html'
     
-    class Meta:
-        model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'is_active')
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['password1'].help_text = 'Password must be at least 8 characters long.'
-        self.fields['password2'].help_text = 'Enter the same password as before, for verification.'
+    def form_valid(self, form):
+        messages.success(self.request, f'Welcome back, {form.get_user().get_full_name() or form.get_user().username}!')
+        return super().form_valid(form)
+
+
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
@@ -107,6 +105,35 @@ class AdminPasswordResetView(LoginRequiredMixin, UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, 'Please correct the errors below.')
         return super().form_invalid(form)
+
+
+class UserDeleteView(LoginRequiredMixin, DeleteView):
+    """Admin can delete users (except themselves)"""
+    model = User
+    success_url = reverse_lazy('accounts:user_list')
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Only admins can delete users
+        if get_user_role(request.user) != 'admin':
+            raise Http404("You don't have permission to delete users")
+        
+        # Can't delete yourself
+        if self.get_object() == request.user:
+            messages.error(request, "You cannot delete your own account!")
+            return redirect('accounts:user_list')
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        user_to_delete = self.get_object()
+        username = user_to_delete.username
+        
+        # Delete the user
+        self.object = user_to_delete
+        user_to_delete.delete()
+        
+        messages.success(request, f'User "{username}" has been deleted successfully!')
+        return redirect(self.success_url)
 
 
 def logout_view(request):

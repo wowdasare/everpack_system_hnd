@@ -84,12 +84,20 @@ class SupplierCreateView(LoginRequiredMixin, CreateView):
     model = Supplier
     template_name = 'inventory/supplier_form.html'
     fields = '__all__'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Supplier "{form.instance.name}" has been created successfully!')
+        return super().form_valid(form)
 
 
 class SupplierUpdateView(LoginRequiredMixin, UpdateView):
     model = Supplier
     template_name = 'inventory/supplier_form.html'
     fields = '__all__'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Supplier "{form.instance.name}" has been updated successfully!')
+        return super().form_valid(form)
 
 
 class SupplierDeleteView(LoginRequiredMixin, DeleteView):
@@ -102,18 +110,43 @@ class CategoryListView(LoginRequiredMixin, ListView):
     model = Category
     template_name = 'inventory/category_list.html'
     context_object_name = 'categories'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate total products across all categories
+        total_products = sum(category.products.count() for category in context['categories'])
+        context['total_products'] = total_products
+        
+        # Find the category with the most products for "Top Category" stat
+        categories_with_counts = [(category, category.products.count()) for category in context['categories']]
+        if categories_with_counts:
+            top_category_count = max(categories_with_counts, key=lambda x: x[1])[1]
+        else:
+            top_category_count = 0
+        context['top_category_count'] = top_category_count
+        
+        return context
 
 
 class CategoryCreateView(LoginRequiredMixin, CreateView):
     model = Category
     template_name = 'inventory/category_form.html'
     fields = '__all__'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Category "{form.instance.name}" has been created successfully!')
+        return super().form_valid(form)
 
 
 class CategoryUpdateView(LoginRequiredMixin, UpdateView):
     model = Category
     template_name = 'inventory/category_form.html'
     fields = '__all__'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Category "{form.instance.name}" has been updated successfully!')
+        return super().form_valid(form)
 
 
 class CategoryDeleteView(LoginRequiredMixin, DeleteView):
@@ -157,3 +190,46 @@ class StockAlertListView(LoginRequiredMixin, ListView):
     model = StockAlert
     template_name = 'inventory/stock_alert_list.html'
     context_object_name = 'alerts'
+    
+    def get_queryset(self):
+        return StockAlert.objects.filter(is_resolved=False).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['resolved_alerts'] = StockAlert.objects.filter(is_resolved=True).order_by('-resolved_at')[:10]
+        context['total_unresolved'] = self.get_queryset().count()
+        return context
+
+
+def resolve_alert(request, alert_id):
+    """Resolve a stock alert"""
+    from django.shortcuts import get_object_or_404
+    from django.utils import timezone
+    
+    alert = get_object_or_404(StockAlert, id=alert_id)
+    alert.is_resolved = True
+    alert.resolved_at = timezone.now()
+    alert.save()
+    
+    messages.success(request, f'Alert for {alert.product.name} has been resolved.')
+    return redirect('inventory:stock_alert_list')
+
+
+class DashboardAlertsView(LoginRequiredMixin, TemplateView):
+    """View to display alerts on dashboard"""
+    template_name = 'dashboard/alerts_widget.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['critical_alerts'] = StockAlert.objects.filter(
+            is_resolved=False,
+            alert_type='OUT_OF_STOCK'
+        ).order_by('-created_at')[:5]
+        
+        context['warning_alerts'] = StockAlert.objects.filter(
+            is_resolved=False,
+            alert_type='LOW_STOCK'
+        ).order_by('-created_at')[:5]
+        
+        context['total_alerts'] = StockAlert.objects.filter(is_resolved=False).count()
+        return context

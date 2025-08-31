@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Orders - EverPack System{% endblock %}
+
+{% block page_title %}
+    <i class="bi bi-boxes"></i> Bulk Orders
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'sales:bulk_order_add' %}" class="btn btn-success">
+        <i class="bi bi-plus"></i> New Bulk Order
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Bulk Orders Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Orders</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ bulk_orders|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-boxes fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Draft Orders</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ bulk_orders|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-pencil-square fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Processing</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Orders Table -->
+<div class="card shadow">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">All Bulk Orders</h6>
+    </div>
+    <div class="card-body">
+        <!-- Search and Filter -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search bulk orders..." onkeyup="filterTable()">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter" onchange="filterTable()">
+                    <option value="">All Status</option>
+                    <option value="DRAFT">Draft</option>
+                    <option value="SUBMITTED">Submitted</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="customerFilter" onchange="filterTable()">
+                    <option value="">All Customers</option>
+                    {% for bulk_order in bulk_orders %}
+                        <option value="{{ bulk_order.customer.name }}">{{ bulk_order.customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="bulkOrdersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bulk Order #</th>
+                        <th>Customer</th>
+                        <th>Created Date</th>
+                        <th>Items</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bulk_order in bulk_orders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'sales:bulk_order_detail' bulk_order.pk %}" class="fw-bold text-decoration-none">
+                                {{ bulk_order.bulk_order_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <div>
+                                <strong>{{ bulk_order.customer.name }}</strong><br>
+                                <small class="text-muted">{{ bulk_order.customer.get_customer_type_display }}</small>
+                            </div>
+                        </td>
+                        <td>{{ bulk_order.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ bulk_order.total_items }} items</span>
+                        </td>
+                        <td>
+                            <strong class="text-success">GHS {{ bulk_order.total_amount }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if bulk_order.status == 'COMPLETED' %}bg-success
+                                {% elif bulk_order.status == 'SUBMITTED' %}bg-primary
+                                {% elif bulk_order.status == 'PROCESSING' %}bg-warning text-dark
+                                {% elif bulk_order.status == 'DRAFT' %}bg-secondary
+                                {% else %}bg-danger{% endif %}">
+                                {{ bulk_order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ bulk_order.created_by.get_full_name|default:bulk_order.created_by.username }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'sales:bulk_order_detail' bulk_order.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if bulk_order.status == 'DRAFT' %}
+                                <a href="{% url 'sales:bulk_order_edit' bulk_order.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if bulk_order.status == 'SUBMITTED' %}
+                                <a href="{% url 'sales:convert_bulk_order' bulk_order.pk %}" class="btn btn-outline-success" title="Convert to Sale">
+                                    <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'sales:bulk_order_receipt_pdf' bulk_order.pk %}" class="btn btn-outline-dark" title="Print Receipt">
+                                    <i class="bi bi-receipt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-boxes fs-1"></i><br>
+                            No bulk orders found.<br>
+                            <a href="{% url 'sales:bulk_order_add' %}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus"></i> Create Your First Bulk Order
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterTable() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const customerFilter = document.getElementById('customerFilter').value;
+    const table = document.getElementById('bulkOrdersTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        
+        if (cells.length === 0) continue;
+        
+        const bulkOrderNum = cells[0].textContent.toLowerCase();
+        const customer = cells[1].textContent.toLowerCase();
+        const statusText = cells[5].textContent.trim();
+        
+        const matchesSearch = bulkOrderNum.includes(searchInput) || customer.includes(searchInput);
+        const matchesStatus = !statusFilter || statusText.includes(statusFilter);
+        const matchesCustomer = !customerFilter || customer.includes(customerFilter.toLowerCase());
+        
+        if (matchesSearch && matchesStatus && matchesCustomer) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}
